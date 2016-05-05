@@ -4,7 +4,7 @@
 #include "variable.h"
 
 int bleh(char* str) {
-	return fprintf(stderr, "Bleh. %s\n", str);
+  return fprintf(stderr, "Bleh. %s\n", str);
 }
 
 // Fonctions
@@ -38,8 +38,8 @@ static int size_elem(int type)
     case VAR_NULL :  size = 0;
                       break;
     default :
-		size = -1; /* error */
-		fprintf(stderr, "[varNew] : unknown type\n");
+    size = -1; /* error */
+    fprintf(stderr, "[varNew] : unknown type\n");
 
   }
   return size;
@@ -70,33 +70,33 @@ variable_t* varNew(int type)
 
 variable_t* varNewMatrix(struct matrix* matrix)
 {
-	variable_t* r;
-	struct matrix** m;
+  variable_t* r;
+  struct matrix** m;
 
-	r = varNew(VAR_MATRIX);
+  r = varNew(VAR_MATRIX);
 
-	m = (struct matrix**) r->element;
-	*m = matrix;
+  m = (struct matrix**) r->element;
+  *m = matrix;
 
-	return r;
+  return r;
 }
 
 variable_t* varNewSymbol(char* str)
 {
-	variable_t* rValue = varNew(VAR_SYMBOL);
+  variable_t* rValue = varNew(VAR_SYMBOL);
 
-	memcpy(rValue->element, &str, sizeof(char*));
+  memcpy(rValue->element, &str, sizeof(char*));
 
-	return rValue;
+  return rValue;
 }
 
 variable_t* varNewNumber(float n)
 {
-	variable_t* rValue = varNew(VAR_NUMBER);
+  variable_t* rValue = varNew(VAR_NUMBER);
 
-	memcpy(rValue->element, &n, sizeof(float));
+  memcpy(rValue->element, &n, sizeof(float));
 
-	return rValue;
+  return rValue;
 }
 
 void varFree(variable_t* var)
@@ -129,58 +129,58 @@ void varFree(variable_t* var)
 
 variable_t* varCopy(variable_t* var)
 {
-	int i=0;
-	variable_t *varCp;
-	variable_array_t *varTemp, *varCpTemp;
-	variable_t **array;
+  int i=0;
+  variable_t *varCp;
+  variable_array_t *varTemp, *varCpTemp;
+  variable_t **array;
 
-	switch(var->type)
-	{
-		case VAR_NUMBER :
-			varCp = varNew(var->type);
-			int size_mem = size_elem(var->type);
-			memcpy(varCp->element, var->element, size_mem);
-			break;
+  switch(var->type)
+  {
+    case VAR_NUMBER :
+      varCp = varNew(var->type);
+      int size_mem = size_elem(var->type);
+      memcpy(varCp->element, var->element, size_mem);
+      break;
 
-		case VAR_STRING : 
-		case VAR_SYMBOL :
-			varCp = varNewSymbol(strdup(*(char**) var->element));
-			break;
-		case VAR_ARRAY :
-		case VAR_CALL :
-			varCp = varNew(var->type);
-			varTemp = (variable_array_t*)var->element;
-			varCpTemp = (variable_array_t*)varCp->element;
-			varCpTemp->size = varTemp->size;
-			array = malloc(sizeof(*array) * varTemp->size);
+    case VAR_STRING : 
+    case VAR_SYMBOL :
+      varCp = varNewSymbol(strdup(*(char**) var->element));
+      break;
+    case VAR_ARRAY :
+    case VAR_CALL :
+      varCp = varNew(var->type);
+      varTemp = (variable_array_t*)var->element;
+      varCpTemp = (variable_array_t*)varCp->element;
+      varCpTemp->size = varTemp->size;
+      array = malloc(sizeof(*array) * varTemp->size);
 
-			for(i=0;i<varTemp->size;i++)
-			{
-				array[i] = varCopy(varTemp->element[i]);
-			}
+      for(i=0;i<varTemp->size;i++)
+      {
+        array[i] = varCopy(varTemp->element[i]);
+      }
 
-			varCpTemp->element = array;
-			break;
+      varCpTemp->element = array;
+      break;
 
-		case VAR_MATRIX :
-			{
-				variable_t* copy;
-				struct matrix** nMatrix;
+    case VAR_MATRIX :
+      {
+        variable_t* copy;
+        struct matrix** nMatrix;
 
-				copy = varNew(VAR_MATRIX);
-				nMatrix = (struct matrix**) copy->element;
-				*nMatrix = copyMatrix(*(struct matrix**) var->element);
+        copy = varNew(VAR_MATRIX);
+        nMatrix = (struct matrix**) copy->element;
+        *nMatrix = copyMatrix(*(struct matrix**) var->element);
 
-				varCp = copy;
+        varCp = copy;
 
-				break;
-			}
-		case VAR_NULL :
-			varCp = varNew(VAR_NULL);
-			break;
-	}
+        break;
+      }
+    case VAR_NULL :
+      varCp = varNew(VAR_NULL);
+      break;
+  }
 
-	return varCp;
+  return varCp;
 }
 
 
@@ -197,7 +197,7 @@ int offsetNumber(char* input, int offsetCur)
 {
   int i=offsetCur;
   for(;(isdigit(input[i])); i++)
-	;;
+  ;;
 
   if(input[i] == '.')
   {
@@ -210,74 +210,74 @@ int offsetNumber(char* input, int offsetCur)
 
 static void matrixPrettyLine(int width, int top)
 {
-	int i;
+  int i;
 
-	if (top)
-	{
-		printf("╭ ");
+  if (top)
+  {
+    printf("╭ ");
 
-		for (i = 0; i < width; i++)
-			printf("      ");
+    for (i = 0; i < width; i++)
+      printf("      ");
 
-		printf("╮\n");
-	}
-	else
-	{
-		printf("╰ ");
+    printf("╮\n");
+  }
+  else
+  {
+    printf("╰ ");
 
-		for (i = 0; i < width; i++)
-			printf("      ");
+    for (i = 0; i < width; i++)
+      printf("      ");
 
-		printf("╯\n");
-	}
+    printf("╯\n");
+  }
 }
 
 static void indentLine(int indent)
 {
-	int n;
+  int n;
 
-	for (n = 0; n < indent; n++)
-	{
-		printf("┃ ");
-	}
+  for (n = 0; n < indent; n++)
+  {
+    printf("┃ ");
+  }
 }
 
 static void matrixPrettyPrint(struct matrix* m, int indent)
 {
-	char buffer[6];
-	int i, j;
-	float value;
+  char buffer[6];
+  int i, j;
+  float value;
 
-	indentLine(indent);
-	matrixPrettyLine(m->ncols, 1);
+  indentLine(indent);
+  matrixPrettyLine(m->ncols, 1);
 
-	for (i = 0; i < m->nrows; i++)
-	{
-		indentLine(indent);
+  for (i = 0; i < m->nrows; i++)
+  {
+    indentLine(indent);
 
-		printf("│ ");
+    printf("│ ");
 
-		for (j = 0; j < m->ncols; j++)
-		{
-			int n;
+    for (j = 0; j < m->ncols; j++)
+    {
+      int n;
 
-			value = getElt(m, i, j);
+      value = getElt(m, i, j);
 
-			snprintf(buffer, sizeof(buffer), "%.4f", value);
+      snprintf(buffer, sizeof(buffer), "%.4f", value);
 
-			for (n = 0; n < strlen(buffer) - 5; n++)
-				printf(" ");
+      for (n = 0; n < strlen(buffer) - 5; n++)
+        printf(" ");
 
-			printf("%s ", buffer);
-		}
+      printf("%s ", buffer);
+    }
 
-		printf("│\n");
-	}
+    printf("│\n");
+  }
 
-	indentLine(indent);
-	matrixPrettyLine(m->ncols, 0);
+  indentLine(indent);
+  matrixPrettyLine(m->ncols, 0);
 
-	return;
+  return;
 }
 
 void varArrayPush(variable_array_t* array, variable_t* var)
@@ -289,43 +289,43 @@ void varArrayPush(variable_array_t* array, variable_t* var)
 
 void varPrint(variable_t* var, int indent)
 {
-	int i;
-	variable_array_t* entete;
+  int i;
+  variable_array_t* entete;
 
-	switch(var->type)
-	{
-		case VAR_NULL :
-			indentLine(indent);
-			printf("<␀>\n");
-			break;
-		case VAR_ARRAY :
-		case VAR_CALL : 
-			entete = (variable_array_t*)var->element;
+  switch(var->type)
+  {
+    case VAR_NULL :
+      indentLine(indent);
+      printf("<␀>\n");
+      break;
+    case VAR_ARRAY :
+    case VAR_CALL : 
+      entete = (variable_array_t*)var->element;
 
-			indentLine(indent);
-			printf("┎\n");
+      indentLine(indent);
+      printf("┎\n");
 
-			for(i=0;i<entete->size;i++)
-			{
-				varPrint(entete->element[i], indent + 1);
-			}
+      for(i=0;i<entete->size;i++)
+      {
+        varPrint(entete->element[i], indent + 1);
+      }
 
-			indentLine(indent);
-			printf("┖\n");
-			break;
-		case VAR_MATRIX :
-			matrixPrettyPrint(*(struct matrix**) var->element, indent);
-			break;
-		case VAR_NUMBER :
-			indentLine(indent);
-			printf("<𝒩  %f>\n", *(float*) var->element);
-			break;
-		case VAR_STRING:
-		case VAR_SYMBOL:
-			indentLine(indent);
-			printf("<𝒮  %s>\n", *((char**)var->element));
-			break;
-	}
+      indentLine(indent);
+      printf("┖\n");
+      break;
+    case VAR_MATRIX :
+      matrixPrettyPrint(*(struct matrix**) var->element, indent);
+      break;
+    case VAR_NUMBER :
+      indentLine(indent);
+      printf("<𝒩  %f>\n", *(float*) var->element);
+      break;
+    case VAR_STRING:
+    case VAR_SYMBOL:
+      indentLine(indent);
+      printf("<𝒮  %s>\n", *((char**)var->element));
+      break;
+  }
 }
 
 void varParserAux(char* input, char close, int* offset, variable_t* var)
@@ -421,127 +421,127 @@ environment_t* newEvt(variable_t* value, char* id)
 
 void setEvt(environment_t** e, variable_t* value, char* key)
 {
-	environment_t* t;
+  environment_t* t;
 
-	key = strdup(key);
+  key = strdup(key);
 
-	t = *e;
+  t = *e;
 
-	if (!t)
-	{
-		*e = newEvt(value, key);
+  if (!t)
+  {
+    *e = newEvt(value, key);
 
-		return;
-	}
+    return;
+  }
 
-	while (t)
-	{
-		if (!strcmp(t->id_type, key))
-		{
-			varFree(t->value);
-			t->value = value;
+  while (t)
+  {
+    if (!strcmp(t->id_type, key))
+    {
+      varFree(t->value);
+      t->value = value;
 
-			return;
-		}
+      return;
+    }
 
-		t = t->next;
-	}
+    t = t->next;
+  }
 
-	t = newEvt(value, key);
-	t->next = *e;
-	*e = t;
+  t = newEvt(value, key);
+  t->next = *e;
+  *e = t;
 }
 
 variable_t* getEvt(environment_t* e, char* key)
 {
-	while (e)
-	{
-		if (!strcmp(e->id_type, key))
-			return e->value;
+  while (e)
+  {
+    if (!strcmp(e->id_type, key))
+      return e->value;
 
-		e = e ->next;
-	}
+    e = e ->next;
+  }
 
-	return NULL;
+  return NULL;
 }
 
 void freeEvt(environment_t *e)
 {
-	environment_t* t;
+  environment_t* t;
 
-	for (; e; e = t)
-	{
-		t = e->next;
+  for (; e; e = t)
+  {
+    t = e->next;
 
-		free(e->id_type);
-		varFree(e->value);
-		free(e);
-	}
+    free(e->id_type);
+    varFree(e->value);
+    free(e);
+  }
 }
 
 variable_t* f_matrix(int argc, variable_t** argv)
 {
-	int i, width = 0;
-	variable_t* argv1;
-	variable_array_t* array = NULL;
-	variable_t* output;
-	struct matrix* outputMatrix;
+  int i, width = 0;
+  variable_t* argv1;
+  variable_array_t* array = NULL;
+  variable_t* output;
+  struct matrix* outputMatrix;
 
-	if (argc != 2)
-	{
-		return varNew(VAR_NULL);
-	}
+  if (argc != 2)
+  {
+    return varNew(VAR_NULL);
+  }
 
-	if ((argv1 = argv[1])->type != VAR_ARRAY)
-	{
-		return varNew(VAR_NULL);
-	}
+  if ((argv1 = argv[1])->type != VAR_ARRAY)
+  {
+    return varNew(VAR_NULL);
+  }
 
-	array = (variable_array_t*) argv1->element;
+  array = (variable_array_t*) argv1->element;
 
-	for (i = 0; i < array->size; i++)
-	{
-		variable_array_t* line = (variable_array_t*) array->element[i]->element;
+  for (i = 0; i < array->size; i++)
+  {
+    variable_array_t* line = (variable_array_t*) array->element[i]->element;
 
-		if (array->element[i]->type != VAR_ARRAY)
-		{
-			bleh("Not an array of numbers.");
+    if (array->element[i]->type != VAR_ARRAY)
+    {
+      bleh("Not an array of numbers.");
 
-			return varNew(VAR_NULL);
-		}
+      return varNew(VAR_NULL);
+    }
 
-		if (i == 0)
-			width = line->size;
-		else if (width != line->size)
-		{
-			bleh("Not the same size.");
+    if (i == 0)
+      width = line->size;
+    else if (width != line->size)
+    {
+      bleh("Not the same size.");
 
-			return varNew(VAR_NULL);
-		}
-	}
+      return varNew(VAR_NULL);
+    }
+  }
 
-	printf(" >> Building [%i:%i] matrix.\n", width, array->size);
+  printf(" >> Building [%i:%i] matrix.\n", width, array->size);
 
-	output = varNew(VAR_MATRIX);
-	outputMatrix = newMatrix(array->size, width);
-	memcpy(output->element, &outputMatrix, sizeof(outputMatrix));
+  output = varNew(VAR_MATRIX);
+  outputMatrix = newMatrix(array->size, width);
+  memcpy(output->element, &outputMatrix, sizeof(outputMatrix));
 
-	for (i = 0; i < array->size; i++)
-	{
-		int j;
-		variable_array_t* line = (variable_array_t*) array->element[i]->element;
+  for (i = 0; i < array->size; i++)
+  {
+    int j;
+    variable_array_t* line = (variable_array_t*) array->element[i]->element;
 
-		for (j = 0; j < line->size; j++)
-		{
-			variable_t* cell = (variable_t*) line->element[j];
-			variable_number_t* value = (variable_number_t*) cell->element;
+    for (j = 0; j < line->size; j++)
+    {
+      variable_t* cell = (variable_t*) line->element[j];
+      variable_number_t* value = (variable_number_t*) cell->element;
 
-			/* Insert value here. */
-			setElt(outputMatrix, i, j, value->value);
-		}
-	}
+      /* Insert value here. */
+      setElt(outputMatrix, i, j, value->value);
+    }
+  }
 
-	return output;
+  return output;
 }
 
 variable_t* f_add(int argc, variable_t** argv)
@@ -616,242 +616,284 @@ variable_t* f_mult(int argc, variable_t** argv)
   return output;
 }
 
+variable_t* f_multScal(int argc, variable_t** argv)
+{
+  variable_array_t* array_operation;
+  variable_t *mat, *scalar;
+  variable_t *output;
+  struct matrix *mat_value, *result_multScal;
+  float scalar_value;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_add\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  scalar = array_operation->element[0];
+  mat = array_operation->element[1];
+  
+  if(mat->type != VAR_MATRIX && scalar->type != VAR_NUMBER)
+  {
+    bleh("Incorrect variable type in f_add\n");
+    printf("type mat : %d et type scalar : %d\n",mat->type, scalar->type);
+    return varNew(VAR_NULL);
+  }
+  
+  scalar_value = *(float*) scalar->element;
+  printf("Valeur de scalar : scalar_value : %f\n", scalar_value);
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_multScal = multScal(scalar_value, mat_value);
+  
+  output = varNew(VAR_MATRIX);
+  memcpy(output->element, &result_multScal, sizeof(result_multScal));
+
+  return output;
+}
+
+
+
 variable_t* f_echo(int argc, variable_t** argv)
 {
-	int i;
+  int i;
 
-	for (i = 1; i < argc; i++)
-	{
-		varPrint(argv[i], 0);
-	}
+  for (i = 1; i < argc; i++)
+  {
+    varPrint(argv[i], 0);
+  }
 
-	return varNew(VAR_NULL);
+  return varNew(VAR_NULL);
 }
 
 variable_t* f_get(int argc, variable_t** argv)
 {
-	variable_t* arg;
-	float i, j;
+  variable_t* arg;
+  float i, j;
 
-	if (argc != 4)
-	{
-		bleh("Wrong parameters: get matrix i j");
+  if (argc != 4)
+  {
+    bleh("Wrong parameters: get matrix i j");
 
-		return varNew(VAR_NULL);
-	}
+    return varNew(VAR_NULL);
+  }
 
-	arg = argv[2];
-	if (arg->type != VAR_NUMBER)
-	{
-		bleh("Wrong parameters: get matrix i j");
+  arg = argv[2];
+  if (arg->type != VAR_NUMBER)
+  {
+    bleh("Wrong parameters: get matrix i j");
 
-		return varNew(VAR_NULL);
-	}
-	else
-		memcpy(&i, arg->element, sizeof(float));
+    return varNew(VAR_NULL);
+  }
+  else
+    memcpy(&i, arg->element, sizeof(float));
 
-	arg = argv[3];
-	if (arg->type != VAR_NUMBER)
-	{
-		bleh("Wrong parameters: get matrix i j");
+  arg = argv[3];
+  if (arg->type != VAR_NUMBER)
+  {
+    bleh("Wrong parameters: get matrix i j");
 
-		return varNew(VAR_NULL);
-	}
-	else
-		memcpy(&j, arg->element, sizeof(float));
+    return varNew(VAR_NULL);
+  }
+  else
+    memcpy(&j, arg->element, sizeof(float));
 
-	arg = argv[1];
-	if (arg->type != VAR_MATRIX)
-	{
-		bleh("Wrong parameters: get matrix i j");
+  arg = argv[1];
+  if (arg->type != VAR_MATRIX)
+  {
+    bleh("Wrong parameters: get matrix i j");
 
-		return varNew(VAR_NULL);
-	}
+    return varNew(VAR_NULL);
+  }
 
-	return varNewNumber(getElt(*(struct matrix**) arg->element, (int) i, (int) j));
+  return varNewNumber(getElt(*(struct matrix**) arg->element, (int) i, (int) j));
 }
 
 variable_t* f_matrix_random(int argc, variable_t** argv)
 {
-	int i;
-	int width = 3, height = 3;
-	float min = 0;
-	float max = 1;
+  int i;
+  int width = 3, height = 3;
+  float min = 0;
+  float max = 1;
 
-	for (i = 1; i < 5; i++)
-	{
-		if (i < argc)
-		{
-			float n;
-			variable_t* arg = argv[i];
+  for (i = 1; i < 5; i++)
+  {
+    if (i < argc)
+    {
+      float n;
+      variable_t* arg = argv[i];
 
-			if (arg->type == VAR_SYMBOL && !strcmp(*(char**) arg->element, "_"))
-				continue;
+      if (arg->type == VAR_SYMBOL && !strcmp(*(char**) arg->element, "_"))
+        continue;
 
-			if (arg->type != VAR_NUMBER)
-			{
-				varPrint(arg, 0);
-				bleh("Argument is not a number!");
+      if (arg->type != VAR_NUMBER)
+      {
+        varPrint(arg, 0);
+        bleh("Argument is not a number!");
 
-				return varNew(VAR_NULL);
-			}
+        return varNew(VAR_NULL);
+      }
 
-			memcpy(&n, arg->element, sizeof(float));
+      memcpy(&n, arg->element, sizeof(float));
 
-			switch (i) {
-				case 1:
-					width = (int) n;
-					break;
-				case 2:
-					height = (int) n;
-					break;
-				case 3:
-					min = n;
-					break;
-				case 4:
-					max = n;
-					break;
-			}
-		}
-	}
+      switch (i) {
+        case 1:
+          width = (int) n;
+          break;
+        case 2:
+          height = (int) n;
+          break;
+        case 3:
+          min = n;
+          break;
+        case 4:
+          max = n;
+          break;
+      }
+    }
+  }
 
-	if (min > max)
-	{
-		float t = max;
+  if (min > max)
+  {
+    float t = max;
 
-		max = min;
-		min = t;
-	}
+    max = min;
+    min = t;
+  }
 
-	return varNewMatrix(aleatoire(height, width, min, max));
+  return varNewMatrix(aleatoire(height, width, min, max));
 }
 
 variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
 {
-	int i;
-	variable_t* rValue = NULL;
+  int i;
+  variable_t* rValue = NULL;
 
-	if (argc == 1)
-	{
-		if (argv[0]->type == VAR_SYMBOL)
-		{
-			variable_symbol_t* symbol = (variable_symbol_t*) argv[0]->element;
-			variable_t* match = getEvt(*evnt, symbol->string);
+  if (argc == 1)
+  {
+    if (argv[0]->type == VAR_SYMBOL)
+    {
+      variable_symbol_t* symbol = (variable_symbol_t*) argv[0]->element;
+      variable_t* match = getEvt(*evnt, symbol->string);
 
-			if (match)
-				return varCopy(match);
-			else
-			{
-				return varCopy(argv[0]);
-			}
-		}
-		else if (argv[0]->type == VAR_ARRAY)
-		{
-			variable_array_t* orig;
-			variable_array_t* array;
+      if (match)
+        return varCopy(match);
+      else
+      {
+        return varCopy(argv[0]);
+      }
+    }
+    else if (argv[0]->type == VAR_ARRAY)
+    {
+      variable_array_t* orig;
+      variable_array_t* array;
 
-			rValue = varNew(VAR_ARRAY);
-			orig = (variable_array_t*) argv[0]->element;
-			array = (variable_array_t*) rValue->element;
+      rValue = varNew(VAR_ARRAY);
+      orig = (variable_array_t*) argv[0]->element;
+      array = (variable_array_t*) rValue->element;
 
-			array->size = orig->size;
-			array->element = malloc(sizeof(*array->element) * array->size);
+      array->size = orig->size;
+      array->element = malloc(sizeof(*array->element) * array->size);
 
-			for (i = 0; i < orig->size; i++)
-			{
-				array->element[i] = eval(1, &orig->element[i], evnt);
-			}
+      for (i = 0; i < orig->size; i++)
+      {
+        array->element[i] = eval(1, &orig->element[i], evnt);
+      }
 
-			return rValue;
-		}
-		else if (argv[0]->type == VAR_CALL)
-		{
-			variable_array_t* orig;
+      return rValue;
+    }
+    else if (argv[0]->type == VAR_CALL)
+    {
+      variable_array_t* orig;
 
-			orig = (variable_array_t*) argv[0]->element;
+      orig = (variable_array_t*) argv[0]->element;
 
-			rValue = eval(orig->size, orig->element, evnt);
+      rValue = eval(orig->size, orig->element, evnt);
 
-			return rValue;
-		}
-		else
-			return varCopy(argv[0]);
-	}
-	else if (argc >= 3)
-	{
-		if (argv[0]->type == VAR_SYMBOL && argv[1]->type == VAR_SYMBOL)
-		{
-			if (!strcmp(*((char**) argv[1]->element), ":"))
-			{
-				variable_t* rValue;
-				char* varName;
+      return rValue;
+    }
+    else
+      return varCopy(argv[0]);
+  }
+  else if (argc >= 3)
+  {
+    if (argv[0]->type == VAR_SYMBOL && argv[1]->type == VAR_SYMBOL)
+    {
+      if (!strcmp(*((char**) argv[1]->element), ":"))
+      {
+        variable_t* rValue;
+        char* varName;
 
-				varName = *(char**)(argv[0]->element);
-				rValue = eval(argc - 2, argv + 2, evnt);
+        varName = *(char**)(argv[0]->element);
+        rValue = eval(argc - 2, argv + 2, evnt);
 
-				setEvt(evnt, rValue, varName);
-				printf("%p\n", *evnt);
+        setEvt(evnt, rValue, varName);
+        printf("%p\n", *evnt);
 
-				printf("New variable: %s\n", varName);
+        printf("New variable: %s\n", varName);
 
-				return varCopy(rValue);
-			}
-		}
-	}
+        return varCopy(rValue);
+      }
+    }
+  }
 
-	variable_t** realValues;
+  variable_t** realValues;
 
-	realValues = malloc(sizeof(variable_t*) * argc);
+  realValues = malloc(sizeof(variable_t*) * argc);
 
-	for (i = 0; i < argc; i++)
-	{
-		if (argv[i]->type == VAR_CALL)
-		{
-			variable_array_t* array = (variable_array_t*) realValues[i]->element;
+  for (i = 0; i < argc; i++)
+  {
+    if (argv[i]->type == VAR_CALL)
+    {
+      variable_array_t* array = (variable_array_t*) realValues[i]->element;
 
-			realValues[i] = eval(array->size, array->element, evnt);
-		}
-		else
-		{
-			realValues[i] = eval(1, argv + i, evnt);
-		}
-	}
+      realValues[i] = eval(array->size, array->element, evnt);
+    }
+    else
+    {
+      realValues[i] = eval(1, argv + i, evnt);
+    }
+  }
 
-	if (argv[0]->type == VAR_SYMBOL)
-	{
-		char* funcName = *(char**) argv[0]->element;
+  if (argv[0]->type == VAR_SYMBOL)
+  {
+    char* funcName = *(char**) argv[0]->element;
 
-		if (!strcmp(funcName, "matrix"))
-			rValue = f_matrix(argc, realValues);
-		else if (!strcmp(funcName, "rmatrix") || !strcmp(funcName, "randomMatrix"))
-			rValue = f_matrix_random(argc, realValues);
-		else if (!strcmp(funcName,"addition"))
+    if (!strcmp(funcName, "matrix"))
+      rValue = f_matrix(argc, realValues);
+    else if (!strcmp(funcName, "rmatrix") || !strcmp(funcName, "randomMatrix"))
+      rValue = f_matrix_random(argc, realValues);
+    else if (!strcmp(funcName,"addition"))
       rValue = f_add(argc, realValues);
     else if (!strcmp(funcName,"mult"))
       rValue = f_mult(argc, realValues);
-		else if (!strcmp(funcName, "get"))
-			rValue = f_get(argc, realValues);
-		else if (!strcmp(funcName, "echo"))
-			rValue = f_echo(argc, realValues);
-		else
-		{
-			bleh("Trying to call unknown function.");
-			fprintf(stderr, " -> function name: %s\n", funcName);
+    else if (!strcmp(funcName,"mult_scal"))
+      rValue = f_multScal(argc, realValues);  
+    else if (!strcmp(funcName, "get"))
+      rValue = f_get(argc, realValues);
+    else if (!strcmp(funcName, "echo"))
+      rValue = f_echo(argc, realValues);
+    else
+    {
+      bleh("Trying to call unknown function.");
+      fprintf(stderr, " -> function name: %s\n", funcName);
 
-			rValue = varNew(VAR_NULL);
-		}
-	}
+      rValue = varNew(VAR_NULL);
+    }
+  }
 
-	for (i = 0; i < argc; i++)
-	{
-		varFree(realValues[i]);
-	}
+  for (i = 0; i < argc; i++)
+  {
+    varFree(realValues[i]);
+  }
 
-	free(realValues);
+  free(realValues);
 
-	if (rValue)
-		return rValue;
-	else
-		return varNew(VAR_NULL);
+  if (rValue)
+    return rValue;
+  else
+    return varNew(VAR_NULL);
 }
 

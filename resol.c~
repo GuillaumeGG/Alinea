@@ -59,9 +59,7 @@ E normeVector(const Matrix V){
 	return sqrt(s);
 }
 
-Matrix puissance(Matrix A, float p){
-	
-	int pow = (int)p;
+Matrix puissance(Matrix A, int p){
 	
 	if(p==0){
 		return newIdentite(A->nrows);

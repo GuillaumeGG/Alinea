@@ -531,7 +531,7 @@ variable_t* f_matrix(int argc, variable_t** argv)
     int j;
     variable_array_t* line = (variable_array_t*) array->element[i]->element;
 
-    for (j = 0; j < line->size; j++)
+    for (j = 0; j < width; j++)
     {
       variable_t* cell = (variable_t*) line->element[j];
       variable_number_t* value = (variable_number_t*) cell->element;
@@ -572,7 +572,7 @@ variable_t* f_add(int argc, variable_t** argv)
   mat1_value = *(struct matrix**) mat1->element;
   mat2_value = *(struct matrix**) mat2->element;
   
-  result_add = additionMatrix(mat1_value, mat2_value);
+  result_add = addition(mat1_value, mat2_value);
   
   output = varNew(VAR_MATRIX);
   memcpy(output->element, &result_add, sizeof(result_add));
@@ -589,7 +589,7 @@ variable_t* f_mult(int argc, variable_t** argv)
   
   if (argc != 2)
   {
-    bleh("Incorrect arg number in f_add\n");
+    bleh("Incorrect arg number in f_mult\n");
     return varNew(VAR_NULL);
   }
   
@@ -600,7 +600,7 @@ variable_t* f_mult(int argc, variable_t** argv)
   
   if(mat1->type != VAR_MATRIX && mat2->type != VAR_MATRIX)
   {
-    bleh("Incorrect variable type in f_add\n");
+    bleh("Incorrect variable type in f_mult\n");
     printf("type mat1 : %d et type mat2 : %d\n",mat1->type, mat2->type);
     return varNew(VAR_NULL);
   }
@@ -608,13 +608,14 @@ variable_t* f_mult(int argc, variable_t** argv)
   mat1_value = *(struct matrix**) mat1->element;
   mat2_value = *(struct matrix**) mat2->element;
   
-  result_mult = multiplicationMatrix(mat1_value, mat2_value);
+  result_mult = multiplication(mat1_value, mat2_value);
   
   output = varNew(VAR_MATRIX);
   memcpy(output->element, &result_mult, sizeof(result_mult));
 
   return output;
 }
+
 
 variable_t* f_multScal(int argc, variable_t** argv)
 {
@@ -626,7 +627,7 @@ variable_t* f_multScal(int argc, variable_t** argv)
   
   if (argc != 2)
   {
-    bleh("Incorrect arg number in f_add\n");
+    bleh("Incorrect arg number in f_multScal\n");
     return varNew(VAR_NULL);
   }
   
@@ -637,7 +638,7 @@ variable_t* f_multScal(int argc, variable_t** argv)
   
   if(mat->type != VAR_MATRIX && scalar->type != VAR_NUMBER)
   {
-    bleh("Incorrect variable type in f_add\n");
+    bleh("Incorrect variable type in f_multScal\n");
     printf("type mat : %d et type scalar : %d\n",mat->type, scalar->type);
     return varNew(VAR_NULL);
   }
@@ -654,6 +655,76 @@ variable_t* f_multScal(int argc, variable_t** argv)
   return output;
 }
 
+variable_t* f_pow(int argc, variable_t** argv)
+{
+  variable_array_t* array_operation;
+  variable_t *mat, *pow;
+  variable_t *output;
+  struct matrix *mat_value, *result_pow;
+  float pow_value;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_pow\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  pow = array_operation->element[1];
+  
+  if(mat->type != VAR_MATRIX && pow->type != VAR_NUMBER)
+  {
+    bleh("Incorrect variable type in f_pow\n");
+    printf("type mat : %d et type pow : %d\n",mat->type, pow->type);
+    return varNew(VAR_NULL);
+  }
+  
+  pow_value = *(float*) pow->element;
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_pow = puissance(mat_value, pow_value);
+  
+  output = varNew(VAR_MATRIX);
+  memcpy(output->element, &result_pow, sizeof(result_pow));
+
+  return output;
+}
+
+variable_t* f_trans(int argc, variable_t** argv)
+{
+  variable_array_t* array_operation;
+  variable_t *mat;
+  variable_t *output;
+  struct matrix *mat_value, *result_trans;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_trans\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  
+  if(mat->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_trans\n");
+    printf("type mat : %d \n",mat->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_trans = transpose(mat_value);
+  
+  output = varNew(VAR_MATRIX);
+  memcpy(output->element, &result_trans, sizeof(result_trans));
+
+  return output;
+}
 
 
 variable_t* f_echo(int argc, variable_t** argv)
@@ -847,7 +918,7 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
   {
     if (argv[i]->type == VAR_CALL)
     {
-      variable_array_t* array = (variable_array_t*) realValues[i]->element;
+      variable_array_t* array = (variable_array_t*) argv[i]->element;
 
       realValues[i] = eval(array->size, array->element, evnt);
     }
@@ -870,7 +941,11 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
     else if (!strcmp(funcName,"mult"))
       rValue = f_mult(argc, realValues);
     else if (!strcmp(funcName,"mult_scal"))
-      rValue = f_multScal(argc, realValues);  
+      rValue = f_multScal(argc, realValues);
+    else if (!strcmp(funcName,"expo"))
+      rValue = f_pow(argc, realValues);
+    else if (!strcmp(funcName,"transpose"))
+      rValue = f_trans(argc, realValues);
     else if (!strcmp(funcName, "get"))
       rValue = f_get(argc, realValues);
     else if (!strcmp(funcName, "echo"))

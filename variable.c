@@ -726,6 +726,112 @@ variable_t* f_trans(int argc, variable_t** argv)
   return output;
 }
 
+variable_t* f_det(int argc, variable_t** argv)
+{
+  variable_array_t* array_operation;
+  variable_t *mat;
+  variable_t *output;
+  struct matrix *mat_value;
+  float result_det;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_trans\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  
+  if(mat->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_trans\n");
+    printf("type mat : %d \n",mat->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_det = determinant_opt(mat_value);
+  
+  output = varNew(VAR_NUMBER);
+  memcpy(output->element, &result_det, sizeof(result_det));
+
+  return output;
+}
+
+variable_t* f_invert(int argc, variable_t** argv)
+{
+  variable_array_t* array_operation;
+  variable_t *mat;
+  variable_t *output;
+  struct matrix *mat_value, *result_invert;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_trans\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  
+  if(mat->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_trans\n");
+    printf("type mat : %d \n",mat->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_invert = invert(mat_value);
+  
+  output = varNew(VAR_MATRIX);
+  memcpy(output->element, &result_invert, sizeof(result_invert));
+
+  return output;
+}
+
+
+variable_t* f_solve(int argc, variable_t** argv)
+{
+  variable_array_t* array_mat;
+  variable_t *mat1, *mat2;
+  variable_t *output;
+  struct matrix *mat1_value, *mat2_value, *result_solve;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_solve\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_mat = (variable_array_t*)argv[1]->element;
+  
+  mat1 = array_mat->element[0];
+  mat2 = array_mat->element[1];
+  
+  if(mat1->type != VAR_MATRIX && mat2->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_solve\n");
+    printf("type mat1 : %d et type mat2 : %d\n",mat1->type, mat2->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat1_value = *(struct matrix**) mat1->element;
+  mat2_value = *(struct matrix**) mat2->element;
+  
+  result_solve = solveGauss(mat1_value, mat2_value);
+  
+  output = varNew(VAR_MATRIX);
+  memcpy(output->element, &result_solve, sizeof(result_solve));
+
+  return output;
+}
+
 
 variable_t* f_echo(int argc, variable_t** argv)
 {
@@ -946,6 +1052,12 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
       rValue = f_pow(argc, realValues);
     else if (!strcmp(funcName,"transpose"))
       rValue = f_trans(argc, realValues);
+    else if (!strcmp(funcName,"determinant"))
+      rValue = f_det(argc, realValues);
+    else if (!strcmp(funcName,"invert"))
+      rValue = f_invert(argc, realValues);
+    else if (!strcmp(funcName,"solve"))
+      rValue = f_solve(argc, realValues);
     else if (!strcmp(funcName, "get"))
       rValue = f_get(argc, realValues);
     else if (!strcmp(funcName, "echo"))

@@ -53,6 +53,9 @@ int main(int argc, char **argv)
 
 	setEvt(&evnt, varNewFunction(f_speedtest), "speedtest");
 
+	setEvt(&evnt, varNewFunction(f_LU), "decomposition");
+	setEvt(&evnt, varNewFunction(f_rank), "rank");
+
 	(void) argc;
 	(void) argv;
 

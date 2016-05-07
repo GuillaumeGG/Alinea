@@ -81,6 +81,8 @@ variable_t* f_echo(int, variable_t**);
 variable_t* f_add(int, variable_t**);
 variable_t* f_plus(int, variable_t**);
 variable_t* f_minus(int, variable_t**);
+variable_t* f_rank(int, variable_t**);
+variable_t* f_LU(int, variable_t**);
 variable_t* f_speedtest(int, variable_t**);
 
 #endif

@@ -1,6 +1,8 @@
 // Fichier des variables
 // Auteur : Wasmer Audric et Grosshenny Guillaume
 
+#include <sys/time.h>
+
 #include "resol.h"
 #include "variable.h"
 
@@ -209,13 +211,16 @@ variable_t* varCopy(variable_t* var)
   return varCp;
 }
 
-
+int isSymbol(char c)
+{
+  return isalpha(c) || isdigit(c) || c == '_' || c == ':' || c == '+' || c == '-' || c == '*' || c == '/';
+}
 
 int offsetSymbol(char* input, int offsetCur)
 {
   int i=offsetCur;
-  for(;(isalnum(input[i])) || (input[i] == '_') || (input[i] == ':') ;i++);
-  ;
+  for(;isSymbol(input[i]);i++)
+  ;;
   return i;
 }
 
@@ -371,7 +376,7 @@ void varParserAux(char* input, char close, int* offset, variable_t* var)
   
   for(;input[*offset] != '\0' && input[*offset] != close; (*offset)++)
   {
-    if(isalpha(input[*offset]) || input[*offset] == '_' || input[*offset] == ':')
+  if (isSymbol(input[*offset]) && !isdigit(input[*offset]) && input[*offset] != '-')
     {
       char* bufferTemp;
       varTemp = varNew(VAR_SYMBOL);
@@ -395,6 +400,18 @@ void varParserAux(char* input, char close, int* offset, variable_t* var)
       float number;
       varTemp = varNew(VAR_NUMBER);
       debug = offsetNumber(input, *offset + 1);
+
+      if (debug - 1 == *offset)
+    {
+    if (input[*offset] == '-')
+    {
+      varArrayPush(array, varNewSymbol(strdup("-")));
+
+      *offset = debug - 1;
+
+      continue;
+    }
+    }
       
       number = atof(input + *offset);
       
@@ -553,8 +570,6 @@ variable_t* f_matrix(int argc, variable_t** argv)
     }
   }
 
-  printf(" >> Building [%i:%i] matrix.\n", width, array->size);
-
   output = varNew(VAR_MATRIX);
   outputMatrix = newMatrix(array->size, width);
   memcpy(output->element, &outputMatrix, sizeof(outputMatrix));
@@ -611,6 +626,47 @@ variable_t* f_add(int argc, variable_t** argv)
   memcpy(output->element, &result_add, sizeof(result_add));
 
   return output;
+}
+
+variable_t* f_plus(int argc, variable_t** argv)
+{
+  if (argc != 3)
+  {
+    bleh("+ a b");
+    return varNew(VAR_NULL);
+  }
+
+  if (argv[1]->type == VAR_NUMBER && argv[2]->type == VAR_NUMBER)
+  {
+    return varNewNumber((*(float*) argv[1]->element) + (*(float*) argv[2]->element));
+  }
+  else if (argv[1]->type == VAR_MATRIX && argv[2]->type == VAR_MATRIX)
+  {
+    return varNewMatrix(addition(*(struct matrix**) argv[1]->element, *(struct matrix**) argv[2]->element));
+  }
+
+  return varNew(VAR_NULL);
+}
+
+variable_t* f_minus(int argc, variable_t** argv)
+{
+  if (argc != 3)
+  {
+    bleh("- a b");
+    return varNew(VAR_NULL);
+  }
+
+  if (argv[1]->type == VAR_NUMBER && argv[2]->type == VAR_NUMBER)
+  {
+    return varNewNumber((*(float*) argv[1]->element) - (*(float*) argv[2]->element));
+  }
+  else if (argv[1]->type == VAR_MATRIX && argv[2]->type == VAR_MATRIX)
+  {
+    return varNewSymbol(strdup("not implemented"));
+    //return varNewMatrix(addition(*(struct matrix**) argv[1]->element, *(struct matrix**) argv[2]->element));
+  }
+
+  return varNew(VAR_NULL);
 }
 
 variable_t* f_mult(int argc, variable_t** argv)
@@ -1153,6 +1209,16 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
     else
     {
       realValues[i] = eval(1, argv + i, evnt);
+    }
+  }
+
+  if (argc >= 2)
+  {
+    if (realValues[1]->type == VAR_FUNCTION && realValues[0]->type != VAR_FUNCTION)
+    {
+      variable_t* t = realValues[0];
+      realValues[0] = realValues[1];
+      realValues[1] = t;
     }
   }
 

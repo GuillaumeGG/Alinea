@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "variable.h"
@@ -20,15 +21,42 @@ int isfullspace(char* s)
 	return 1;
 }
 
+int quit = 0;
+variable_t* f_quit(int argc, variable_t** argv)
+{
+	(void) argc;
+	(void) argv;
+
+	quit = 1;
+
+	return varNewSymbol(strdup("Have a nice day!"));
+}
+
 int main(int argc, char **argv)
 {
 	char* input;
 	environment_t* evnt = NULL;
 
+	setEvt(&evnt, varNewNumber(M_PI), "pi");
+
+	setEvt(&evnt, varNewFunction(f_quit), "quit");
+	setEvt(&evnt, varNewFunction(f_echo), "echo");
+
+	setEvt(&evnt, varNewFunction(f_add), "addition");
+	setEvt(&evnt, varNewFunction(f_add), "add");
+
+	setEvt(&evnt, varNewFunction(f_plus), "plus");
+	setEvt(&evnt, varNewFunction(f_plus), "+");
+
+	setEvt(&evnt, varNewFunction(f_minus), "minus");
+	setEvt(&evnt, varNewFunction(f_minus), "-");
+
+	setEvt(&evnt, varNewFunction(f_speedtest), "speedtest");
+
 	(void) argc;
 	(void) argv;
 
-	for(;;)
+	for(;!quit;)
 	{
 		variable_t* rValue;
 
@@ -61,6 +89,19 @@ int main(int argc, char **argv)
 		//varPrint(varTest, 0);
 
 		rValue = eval(arg->size, arg->element, &evnt);
+
+		if (rValue->type == VAR_FUNCTION)
+		{
+			variable_function_t* f;
+			variable_t* newValue;
+
+			f = (variable_function_t*) rValue->element;
+
+			newValue = f->function(1, &rValue);
+
+			varFree(rValue);
+			rValue = newValue;
+		}
 
 		varPrint(rValue, 0);
 

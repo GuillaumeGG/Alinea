@@ -59,6 +59,7 @@ void setEvt(environment_t**, variable_t*, char*);
 // alloue la mémoire nécessaire
 variable_t* varNew(int type);
 variable_t* varNewFunction(variable_t* (*f)(int, variable_t**));
+variable_t* varNewNumber(float);
 variable_t* varNewSymbol(char*);
 
 // Copie un contenu dans une variable
@@ -78,6 +79,8 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt);
 
 variable_t* f_echo(int, variable_t**);
 variable_t* f_add(int, variable_t**);
+variable_t* f_plus(int, variable_t**);
+variable_t* f_minus(int, variable_t**);
 variable_t* f_speedtest(int, variable_t**);
 
 #endif

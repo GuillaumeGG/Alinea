@@ -108,7 +108,7 @@ Matrix invert(Matrix A);
 /*
  * Renvoie le rang de la matrice A
  */
-int rang(Matrix M);
+float rang(Matrix M);
 
 /*
  * Retourne dans le tableau de pointeurs sur matrice res les matrices L

@@ -17,16 +17,16 @@ Q := @
 
 all: minicas
 
-minicas: main.o matrix.o operations.o variable.o 
+minicas: main.o matrix.o operations.o resol.o variable.o 
 	@echo '[01;32m  [LD]    [01;37mminicas[00m'
-	$(Q)$(CC) -o minicas $(LDFLAGS) main.o matrix.o operations.o variable.o -lreadline
+	$(Q)$(CC) -o minicas $(LDFLAGS) main.o matrix.o operations.o resol.o variable.o -lreadline -lm
 
 minicas.install: minicas
 	@echo '[01;31m  [IN]    [01;37m$(BINDIR)/minicas[00m'
 	$(Q)mkdir -p '$(DESTDIR)$(BINDIR)'
 	$(Q)install -m0755 minicas $(DESTDIR)$(BINDIR)/minicas
 
-minicas.clean:  main.o.clean matrix.o.clean operations.o.clean variable.o.clean
+minicas.clean:  main.o.clean matrix.o.clean operations.o.clean resol.o.clean variable.o.clean
 	@echo '[01;37m  [RM]    [01;37mminicas[00m'
 	$(Q)rm -f minicas
 
@@ -70,6 +70,18 @@ operations.o.clean:
 
 operations.o.uninstall:
 
+resol.o: resol.c ./resol.h
+	@echo '[01;34m  [CC]    [01;37mresol.o[00m'
+	$(Q)$(CC) $(CFLAGS) -O0 -g -Wall -Wextra -c resol.c  -O0 -g -Wall -Wextra -o resol.o
+
+resol.o.install:
+
+resol.o.clean:
+	@echo '[01;37m  [RM]    [01;37mresol.o[00m'
+	$(Q)rm -f resol.o
+
+resol.o.uninstall:
+
 variable.o: variable.c ./variable.h
 	@echo '[01;34m  [CC]    [01;37mvariable.o[00m'
 	$(Q)$(CC) $(CFLAGS) -O0 -g -Wall -Wextra -c variable.c  -O0 -g -Wall -Wextra -o variable.o
@@ -97,12 +109,12 @@ $(DESTDIR)$(SHAREDIR):
 $(DESTDIR)$(INCLUDEDIR):
 	@echo '[01;35m  [DIR]   [01;37m$(INCLUDEDIR)[00m'
 	$(Q)mkdir -p $(DESTDIR)$(INCLUDEDIR)
-install: subdirs.install minicas.install main.o.install matrix.o.install operations.o.install variable.o.install
+install: subdirs.install minicas.install main.o.install matrix.o.install operations.o.install resol.o.install variable.o.install
 	@:
 
 subdirs.install:
 
-uninstall: subdirs.uninstall minicas.uninstall main.o.uninstall matrix.o.uninstall operations.o.uninstall variable.o.uninstall
+uninstall: subdirs.uninstall minicas.uninstall main.o.uninstall matrix.o.uninstall operations.o.uninstall resol.o.uninstall variable.o.uninstall
 	@:
 
 subdirs.uninstall:
@@ -112,7 +124,7 @@ test: all subdirs subdirs.test
 
 subdirs.test:
 
-clean: minicas.clean main.o.clean matrix.o.clean operations.o.clean variable.o.clean
+clean: minicas.clean main.o.clean matrix.o.clean operations.o.clean resol.o.clean variable.o.clean
 
 distclean: clean
 
@@ -127,36 +139,48 @@ dist-gz: $(PACKAGE)-$(VERSION).tar.gz
 $(PACKAGE)-$(VERSION).tar.gz: distdir
 	@echo '[01;33m  [TAR]   [01;37m$(PACKAGE)-$(VERSION).tar.gz[00m'
 	$(Q)tar czf $(PACKAGE)-$(VERSION).tar.gz \
+		$(PACKAGE)-$(VERSION)/project.zsh \
+		$(PACKAGE)-$(VERSION)/Makefile \
 		$(PACKAGE)-$(VERSION)/main.c \
 		$(PACKAGE)-$(VERSION)/matrix.c \
 		$(PACKAGE)-$(VERSION)/operations.c \
+		$(PACKAGE)-$(VERSION)/resol.c \
 		$(PACKAGE)-$(VERSION)/variable.c \
 		$(PACKAGE)-$(VERSION)/matrix.h \
 		$(PACKAGE)-$(VERSION)/operations.h \
+		$(PACKAGE)-$(VERSION)/resol.h \
 		$(PACKAGE)-$(VERSION)/variable.h
 
 dist-xz: $(PACKAGE)-$(VERSION).tar.xz
 $(PACKAGE)-$(VERSION).tar.xz: distdir
 	@echo '[01;33m  [TAR]   [01;37m$(PACKAGE)-$(VERSION).tar.xz[00m'
 	$(Q)tar cJf $(PACKAGE)-$(VERSION).tar.xz \
+		$(PACKAGE)-$(VERSION)/project.zsh \
+		$(PACKAGE)-$(VERSION)/Makefile \
 		$(PACKAGE)-$(VERSION)/main.c \
 		$(PACKAGE)-$(VERSION)/matrix.c \
 		$(PACKAGE)-$(VERSION)/operations.c \
+		$(PACKAGE)-$(VERSION)/resol.c \
 		$(PACKAGE)-$(VERSION)/variable.c \
 		$(PACKAGE)-$(VERSION)/matrix.h \
 		$(PACKAGE)-$(VERSION)/operations.h \
+		$(PACKAGE)-$(VERSION)/resol.h \
 		$(PACKAGE)-$(VERSION)/variable.h
 
 dist-bz2: $(PACKAGE)-$(VERSION).tar.bz2
 $(PACKAGE)-$(VERSION).tar.bz2: distdir
 	@echo '[01;33m  [TAR]   [01;37m$(PACKAGE)-$(VERSION).tar.bz2[00m'
 	$(Q)tar cjf $(PACKAGE)-$(VERSION).tar.bz2 \
+		$(PACKAGE)-$(VERSION)/project.zsh \
+		$(PACKAGE)-$(VERSION)/Makefile \
 		$(PACKAGE)-$(VERSION)/main.c \
 		$(PACKAGE)-$(VERSION)/matrix.c \
 		$(PACKAGE)-$(VERSION)/operations.c \
+		$(PACKAGE)-$(VERSION)/resol.c \
 		$(PACKAGE)-$(VERSION)/variable.c \
 		$(PACKAGE)-$(VERSION)/matrix.h \
 		$(PACKAGE)-$(VERSION)/operations.h \
+		$(PACKAGE)-$(VERSION)/resol.h \
 		$(PACKAGE)-$(VERSION)/variable.h
 
 help:

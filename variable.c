@@ -1,6 +1,7 @@
 // Fichier des variables
 // Auteur : Wasmer Audric et Grosshenny Guillaume
 
+#include "resol.h"
 #include "variable.h"
 
 int bleh(char* str) {
@@ -35,6 +36,9 @@ static int size_elem(int type)
     case VAR_ARRAY : 
     case VAR_CALL  :  size = sizeof(variable_array_t);
                       break;
+  case VAR_FUNCTION:
+    size = sizeof(variable_function_t);
+    break;
     case VAR_NULL :  size = 0;
                       break;
     default :
@@ -68,6 +72,17 @@ variable_t* varNew(int type)
   return var;
 }
 
+variable_t* varNewFunction(variable_t* (*f)(int, variable_t**))
+{
+  variable_function_t* vf;
+  variable_t* rValue = varNew(VAR_FUNCTION);
+
+  vf = (variable_function_t*) rValue->element;
+  vf->function = f;
+
+  return rValue;
+}
+
 variable_t* varNewMatrix(struct matrix* matrix)
 {
   variable_t* r;
@@ -97,6 +112,11 @@ variable_t* varNewNumber(float n)
   memcpy(rValue->element, &n, sizeof(float));
 
   return rValue;
+}
+
+float varGetNumber(variable_t* var)
+{
+  return *(float*) var->element;
 }
 
 void varFree(variable_t* var)
@@ -175,6 +195,12 @@ variable_t* varCopy(variable_t* var)
 
         break;
       }
+  case VAR_FUNCTION:
+    {
+      variable_function_t* orig = (variable_function_t*) var->element;
+      varCp = varNewFunction(orig->function);
+      break;
+    }
     case VAR_NULL :
       varCp = varNew(VAR_NULL);
       break;
@@ -265,7 +291,7 @@ static void matrixPrettyPrint(struct matrix* m, int indent)
 
       snprintf(buffer, sizeof(buffer), "%.4f", value);
 
-      for (n = 0; n < strlen(buffer) - 5; n++)
+      for (n = 0; ((unsigned) n) < strlen(buffer) - 5; n++)
         printf(" ");
 
       printf("%s ", buffer);
@@ -325,6 +351,13 @@ void varPrint(variable_t* var, int indent)
       indentLine(indent);
       printf("<𝒮  %s>\n", *((char**)var->element));
       break;
+  case VAR_FUNCTION:
+    indentLine(indent);
+    {
+      variable_function_t* vf = (variable_function_t*) var->element;
+      printf("<ℱ %p>\n", vf->function);
+      break;
+    }
   }
 }
 
@@ -638,9 +671,17 @@ variable_t* f_multScal(int argc, variable_t** argv)
   
   if(mat->type != VAR_MATRIX && scalar->type != VAR_NUMBER)
   {
-    bleh("Incorrect variable type in f_multScal\n");
-    printf("type mat : %d et type scalar : %d\n",mat->type, scalar->type);
-    return varNew(VAR_NULL);
+    if(scalar->type != VAR_MATRIX && mat->type != VAR_NUMBER)
+    {
+      bleh("Incorrect variable type in f_multScal\n");
+      printf("type mat : %d et type scalar : %d\n",mat->type, scalar->type);
+      return varNew(VAR_NULL);
+    }
+    if(scalar->type == VAR_MATRIX && mat->type == VAR_NUMBER)
+    {
+      scalar = array_operation->element[1];
+      mat = array_operation->element[0];
+    }
   }
   
   scalar_value = *(float*) scalar->element;
@@ -943,6 +984,87 @@ variable_t* f_matrix_random(int argc, variable_t** argv)
   return varNewMatrix(aleatoire(height, width, min, max));
 }
 
+/**
+ * Black magic function of doom.
+ *
+ * Tests the speed of things.
+ */
+variable_t* f_speedtest(int argc, variable_t** argv)
+{
+  variable_t* arg;
+  variable_array_t* argArray;
+  int min, max, step;
+  int i;
+  struct timeval totalStop, totalStart;
+  struct timeval stop, start;
+
+  if (argc != 5)
+  {
+    bleh("speedtest command minSize maxSize step");
+
+    return varNew(VAR_NULL);
+  }
+
+  if (argv[1]->type != VAR_FUNCTION)
+  {
+    bleh("argv[1] is no function");
+
+    return varNew(VAR_NULL);
+  }
+
+  min = (int) varGetNumber(argv[2]);
+  max = (int) varGetNumber(argv[3]);
+  step = (int) varGetNumber(argv[4]);
+
+  printf("  %i -> %i\n", min, max);
+
+  arg = varNew(VAR_ARRAY);
+  argArray = (variable_array_t*) arg->element;
+
+  argArray->size = 2;
+  argArray->element = malloc(sizeof(variable_t*) * 2);
+  argArray->element[0] = varCopy(argv[1]);
+
+  gettimeofday(&totalStart, NULL);
+
+  for (i = min; i <= max; i += step)
+  {
+    variable_function_t* f;
+    variable_t* pair;
+    variable_array_t* array;
+    char buffer[256];
+
+    pair = varNew(VAR_ARRAY);
+    array = (variable_array_t*) pair->element;
+    array->size = 2;
+    array->element = malloc(sizeof(variable_t*) * 2);
+
+    array->element[0] = varNewMatrix(aleatoire(i, i, 0, 1));
+    array->element[1] = varNewMatrix(aleatoire(i, i, 0, 1));
+
+    argArray->element[1] = pair;
+
+    //varPrint(arg, 0);
+
+    gettimeofday(&start, NULL);
+
+    eval(2, argArray->element, NULL);
+
+    gettimeofday(&stop, NULL);
+
+    /* FIXME: redirect that in a file. */
+    printf("%i\n", stop.tv_usec - start.tv_usec);
+
+    varFree(pair);
+  }
+
+  gettimeofday(&totalStop, NULL);
+
+  varFree(arg);
+
+  return varNewNumber((float) (totalStop.tv_usec - totalStart.tv_usec));
+}
+
 variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
 {
   int i;
@@ -1034,7 +1156,12 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
     }
   }
 
-  if (argv[0]->type == VAR_SYMBOL)
+  if (realValues[0]->type == VAR_FUNCTION)
+  {
+    variable_function_t* f = (variable_function_t*) realValues[0]->element;
+    rValue = f->function(argc, realValues);
+  }
+  else if (argv[0]->type == VAR_SYMBOL)
   {
     char* funcName = *(char**) argv[0]->element;
 
@@ -1046,6 +1173,10 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
       rValue = f_add(argc, realValues);
     else if (!strcmp(funcName,"mult"))
       rValue = f_mult(argc, realValues);
+    else if (!strcmp(funcName, "get"))
+      rValue = f_get(argc, realValues);
+    else if (!strcmp(funcName, "echo"))
+      rValue = f_echo(argc, realValues);
     else if (!strcmp(funcName,"mult_scal"))
       rValue = f_multScal(argc, realValues);
     else if (!strcmp(funcName,"expo"))
@@ -1060,8 +1191,6 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
       rValue = f_solve(argc, realValues);
     else if (!strcmp(funcName, "get"))
       rValue = f_get(argc, realValues);
-    else if (!strcmp(funcName, "echo"))
-      rValue = f_echo(argc, realValues);
     else
     {
       bleh("Trying to call unknown function.");

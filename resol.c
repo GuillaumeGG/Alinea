@@ -26,7 +26,6 @@ Matrix multScal(E v, const Matrix m){
 	int i,j;
 	E p;
 	Matrix M = newMatrix(m->nrows, m->ncols);
-	
 	for(i=0; i<m->nrows; i++){
 		for(j=0; j<m->ncols; j++){
 			p = v * getElt(m, i, j);
@@ -38,7 +37,7 @@ Matrix multScal(E v, const Matrix m){
 
 Matrix multVector(Matrix M, Matrix v){
 	if(v->ncols != 1){
-		fprintf(stderr, "argument 2: matrice de taille 1xn ou nx1.\n");
+		fprintf(stderr, "argument 2: matrice de taille nx1.\n");
 		exit(0);
 	}
 	
@@ -77,6 +76,7 @@ E normeVector(const Matrix V){
 }
 
 Matrix puissance(Matrix A, float p){
+	
 	//On prend en argument un float dufait de la façon dont l'interpréteur
 	//est codé, et on cast ce float en int
 	int pu = (int)p;
@@ -331,10 +331,9 @@ Matrix invert(Matrix A_to_invert){
 
 
 
-float rang(Matrix M){
+int rang(Matrix M){
 
-	int i, j, verif=0;
-	float rang =0;
+	int i, j, rang=0, verif=0;
 	Matrix A = copyMatrix(M);  
 
 	for(i=0; i<A->nrows-1; i++){
@@ -449,6 +448,9 @@ Matrix* valeurPropre(Matrix A, Matrix* res){
 	for(i=0; i<u->nrows; i++)
 		setElt(u2,i,0,0);
 		
+	//Matrice utilisée pour éviter les memory leaks
+	Matrix leak_preventer;
+		
 	//v est la composante de u de plus grande valeure absolue.
 	//On représente v sous la forme d'une matrice 1x1 pour pouvoir
 	//renvoyer un tableau de matrices contenant u et v.
@@ -464,10 +466,19 @@ Matrix* valeurPropre(Matrix A, Matrix* res){
 	//Tant que la précision n'est pas suffisante:
 	while( (getElt(v,0,0) - getElt(v2,0,0) > approx) || (normeVector(u)-normeVector(u2) > approx) ){
 
-		v2 = copyMatrix(v); u2 = copyMatrix(u);
+		leak_preventer = v2;
+		v2 = copyMatrix(v); 
+		free(leak_preventer);
+		
+		leak_preventer = u2;
+		u2 = copyMatrix(u);
+		free(leak_preventer);
+		
 		abs = 0;
-
+		
+		leak_preventer = u;
 		u = multVector(A,u);
+		free(leak_preventer);
 
 		//v prend la valeur de la plus grande composante de u
 		for(i=0; i<u->nrows; i++){
@@ -476,7 +487,9 @@ Matrix* valeurPropre(Matrix A, Matrix* res){
 		}					
 		setElt(v,0,0, abs);
 		
+		leak_preventer = u;
 		u = multScal(1/getElt(v,0,0), u);
+		free(leak_preventer);
 	}
 	
 	//On place u et v dans le tableau de pointeurs sur matrices passé

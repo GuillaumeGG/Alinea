@@ -25,7 +25,7 @@ Matrix addition(Matrix m, Matrix n){
 
 Matrix multiplication(Matrix m, Matrix n){
 	int i,j,k;
-	E s;
+	E s=0;
 	Matrix M = newMatrix(m->nrows, m->ncols);
 	for(i=0; i<m->nrows; i++){
 		for(j=0; j<m->ncols; j++){

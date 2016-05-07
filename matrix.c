@@ -6,16 +6,15 @@
 #include "matrix.h"
 
 Matrix newMatrix(int nb_rows, int nb_columns){
-	Matrix M = malloc(sizeof(*M));
+	Matrix M = malloc(sizeof(struct matrix));
 	M->nrows = nb_rows;
 	M->ncols = nb_columns;
-	M->mat = malloc((nb_rows)*(nb_columns)*sizeof(E));
-	
-	
-	int i,j;
+	M->mat = malloc((M->nrows)*(M->ncols)*sizeof(E));
+
+	int i=0,j=0;
 	for(i=0; i < M->nrows; i++){
 		for(j=0; j < M->ncols; j++){
-			M->mat[i] = 0;
+			M->mat[M->ncols*i+j] = 0;
 		}
 	}
 	return M;
@@ -24,11 +23,11 @@ Matrix newMatrix(int nb_rows, int nb_columns){
 E getElt(Matrix m, int row, int column){
 	if(row < 0 || row >= m->nrows){
 		fprintf(stderr,"valeur row incorrecte\n");
-		return 0;
+		exit(0);
 	}
 	 if(column < 0 || column >= m->ncols){
 		fprintf(stderr,"valeur column incorrecte\n");
-		return 0;
+		exit(0);
 	}
 	int position = (row*m->ncols) + column;
 	return (m->mat[position]);
@@ -37,6 +36,7 @@ E getElt(Matrix m, int row, int column){
 void setElt(Matrix m, int row, int column, E val){
 	if(row < 0 || row >= m->nrows || column < 0 || column >= m->ncols){
 		fprintf(stderr,"valeur row/column incorrecte(s)\n");
+		exit(0);
 	}
 
 	int position = (row*m->ncols) + column;
@@ -44,7 +44,7 @@ void setElt(Matrix m, int row, int column, E val){
 }
 
 Matrix newIdentite(int nb_rows){
-	Matrix M = malloc(sizeof(*M));
+	Matrix M = malloc(sizeof(struct matrix));
 	M->nrows = nb_rows;
 	M->ncols = nb_rows;
 	M->mat = malloc(nb_rows*nb_rows*sizeof(E));
@@ -66,7 +66,7 @@ double frand_a_b(double a, double b){
 }
 
 Matrix aleatoire(int nb_rows, int nb_columns, int min, int max){
-	Matrix M = malloc(sizeof(*M));
+	Matrix M = malloc(sizeof(struct matrix));
 	M->nrows = nb_rows;
 	M->ncols = nb_columns;
 	M->mat = malloc(nb_rows*nb_columns*sizeof(E));
@@ -88,7 +88,7 @@ void deleteMatrix(Matrix m){
 }
 
 void displayMatrix(Matrix m){
-	int i, j;
+	int i=0, j=0;
 	for(i=0; i<m->nrows; i++){
 		for(j=0; j<m->ncols; j++){
 			printf("%f ",m->mat[m->ncols*i+j]);

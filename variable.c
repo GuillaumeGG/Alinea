@@ -14,12 +14,12 @@ int bleh(char* str) {
 // Fonctions
 
 /* VAR_NUMBER,
-             VAR_ARRAY,
-             VAR_STRING,
-             VAR_MATRIX,
-             VAR_SYMBOL,
-             VAR_CALL,
-             VAR_NULL, */
+            VAR_ARRAY,
+            VAR_STRING,
+            VAR_MATRIX,
+            VAR_SYMBOL,
+            VAR_CALL,
+            VAR_NULL, */
 
 //void varPrint(variable_t* var, int indent);
 
@@ -39,9 +39,9 @@ static int size_elem(int type)
     case VAR_ARRAY : 
     case VAR_CALL  :  size = sizeof(variable_array_t);
                       break;
-	case VAR_FUNCTION:
-		size = sizeof(variable_function_t);
-		break;
+  case VAR_FUNCTION:
+    size = sizeof(variable_function_t);
+    break;
     case VAR_NULL :  size = 0;
                       break;
     default :
@@ -77,13 +77,13 @@ variable_t* varNew(int type)
 
 variable_t* varNewFunction(variable_t* (*f)(int, variable_t**))
 {
-	variable_function_t* vf;
-	variable_t* rValue = varNew(VAR_FUNCTION);
+  variable_function_t* vf;
+  variable_t* rValue = varNew(VAR_FUNCTION);
 
-	vf = (variable_function_t*) rValue->element;
-	vf->function = f;
+  vf = (variable_function_t*) rValue->element;
+  vf->function = f;
 
-	return rValue;
+  return rValue;
 }
 
 variable_t* varNewMatrix(struct matrix* matrix)
@@ -119,7 +119,7 @@ variable_t* varNewNumber(float n)
 
 float varGetNumber(variable_t* var)
 {
-	return *(float*) var->element;
+  return *(float*) var->element;
 }
 
 void varFree(variable_t* var)
@@ -197,12 +197,12 @@ variable_t* varCopy(variable_t* var)
 
         break;
       }
-	case VAR_FUNCTION:
-		{
-			variable_function_t* orig = (variable_function_t*) var->element;
-			varCp = varNewFunction(orig->function);
-			break;
-		}
+  case VAR_FUNCTION:
+    {
+      variable_function_t* orig = (variable_function_t*) var->element;
+      varCp = varNewFunction(orig->function);
+      break;
+    }
     case VAR_NULL :
       varCp = varNew(VAR_NULL);
       break;
@@ -213,14 +213,14 @@ variable_t* varCopy(variable_t* var)
 
 int isSymbol(char c)
 {
-	return isalpha(c) || isdigit(c) || c == '_' || c == ':' || c == '+' || c == '-' || c == '*' || c == '/';
+  return isalpha(c) || isdigit(c) || c == '_' || c == ':' || c == '+' || c == '-' || c == '*' || c == '/';
 }
 
 int offsetSymbol(char* input, int offsetCur)
 {
   int i=offsetCur;
   for(;isSymbol(input[i]);i++)
-	;;
+  ;;
   return i;
 }
 
@@ -359,13 +359,13 @@ void varPrint(variable_t* var, int indent)
       indentLine(indent);
       printf("<𝒮  %s>\n", *((char**)var->element));
       break;
-	case VAR_FUNCTION:
-		indentLine(indent);
-		{
-			variable_function_t* vf = (variable_function_t*) var->element;
-			printf("<ℱ %p>\n", vf->function);
-			break;
-		}
+  case VAR_FUNCTION:
+    indentLine(indent);
+    {
+      variable_function_t* vf = (variable_function_t*) var->element;
+      printf("<ℱ %p>\n", vf->function);
+      break;
+    }
   }
 }
 
@@ -379,7 +379,7 @@ void varParserAux(char* input, char close, int* offset, variable_t* var)
   
   for(;input[*offset] != '\0' && input[*offset] != close; (*offset)++)
   {
-	if (isSymbol(input[*offset]) && !isdigit(input[*offset]) && input[*offset] != '-')
+  if (isSymbol(input[*offset]) && !isdigit(input[*offset]) && input[*offset] != '-')
     {
       char* bufferTemp;
       varTemp = varNew(VAR_SYMBOL);
@@ -405,16 +405,16 @@ void varParserAux(char* input, char close, int* offset, variable_t* var)
       debug = offsetNumber(input, *offset + 1);
 
       if (debug - 1 == *offset)
-	  {
-		if (input[*offset] == '-')
-		{
-			varArrayPush(array, varNewSymbol(strdup("-")));
+    {
+    if (input[*offset] == '-')
+    {
+      varArrayPush(array, varNewSymbol(strdup("-")));
 
-			*offset = debug - 1;
+      *offset = debug - 1;
 
-			continue;
-		}
-	  }
+      continue;
+    }
+    }
       
       number = atof(input + *offset);
       
@@ -534,65 +534,65 @@ void freeEvt(environment_t *e)
 
 variable_t* f_matrix(int argc, variable_t** argv)
 {
-	int i, width = 0;
-	variable_t* argv1;
-	variable_array_t* array = NULL;
-	variable_t* output;
-	struct matrix* outputMatrix;
+  int i, width = 0;
+  variable_t* argv1;
+  variable_array_t* array = NULL;
+  variable_t* output;
+  struct matrix* outputMatrix;
 
-	if (argc != 2)
-	{
-		return varNew(VAR_NULL);
-	}
+  if (argc != 2)
+  {
+    return varNew(VAR_NULL);
+  }
 
-	if ((argv1 = argv[1])->type != VAR_ARRAY)
-	{
-		return varNew(VAR_NULL);
-	}
+  if ((argv1 = argv[1])->type != VAR_ARRAY)
+  {
+    return varNew(VAR_NULL);
+  }
 
-	array = (variable_array_t*) argv1->element;
+  array = (variable_array_t*) argv1->element;
 
-	for (i = 0; i < array->size; i++)
-	{
-		variable_array_t* line = (variable_array_t*) array->element[i]->element;
+  for (i = 0; i < array->size; i++)
+  {
+    variable_array_t* line = (variable_array_t*) array->element[i]->element;
 
-		if (array->element[i]->type != VAR_ARRAY)
-		{
-			bleh("Not an array of numbers.");
+    if (array->element[i]->type != VAR_ARRAY)
+    {
+      bleh("Not an array of numbers.");
 
-			return varNew(VAR_NULL);
-		}
+      return varNew(VAR_NULL);
+    }
 
-		if (i == 0)
-			width = line->size;
-		else if (width != line->size)
-		{
-			bleh("Not the same size.");
+    if (i == 0)
+      width = line->size;
+    else if (width != line->size)
+    {
+      bleh("Not the same size.");
 
-			return varNew(VAR_NULL);
-		}
-	}
+      return varNew(VAR_NULL);
+    }
+  }
 
-	output = varNew(VAR_MATRIX);
-	outputMatrix = newMatrix(array->size, width);
-	memcpy(output->element, &outputMatrix, sizeof(outputMatrix));
+  output = varNew(VAR_MATRIX);
+  outputMatrix = newMatrix(array->size, width);
+  memcpy(output->element, &outputMatrix, sizeof(outputMatrix));
 
-	for (i = 0; i < array->size; i++)
-	{
-		int j;
-		variable_array_t* line = (variable_array_t*) array->element[i]->element;
+  for (i = 0; i < array->size; i++)
+  {
+    int j;
+    variable_array_t* line = (variable_array_t*) array->element[i]->element;
 
-		for (j = 0; j < width; j++)
-		{
-			variable_t* cell = (variable_t*) line->element[j];
-			variable_number_t* value = (variable_number_t*) cell->element;
+    for (j = 0; j < width; j++)
+    {
+      variable_t* cell = (variable_t*) line->element[j];
+      variable_number_t* value = (variable_number_t*) cell->element;
 
-			/* Insert value here. */
-			setElt(outputMatrix, i, j, value->value);
-		}
-	}
+      /* Insert value here. */
+      setElt(outputMatrix, i, j, value->value);
+    }
+  }
 
-	return output;
+  return output;
 }
 
 variable_t* f_add(int argc, variable_t** argv)
@@ -633,43 +633,43 @@ variable_t* f_add(int argc, variable_t** argv)
 
 variable_t* f_plus(int argc, variable_t** argv)
 {
-	if (argc != 3)
-	{
-		bleh("+ a b");
-		return varNew(VAR_NULL);
-	}
+  if (argc != 3)
+  {
+    bleh("+ a b");
+    return varNew(VAR_NULL);
+  }
 
-	if (argv[1]->type == VAR_NUMBER && argv[2]->type == VAR_NUMBER)
-	{
-		return varNewNumber((*(float*) argv[1]->element) + (*(float*) argv[2]->element));
-	}
-	else if (argv[1]->type == VAR_MATRIX && argv[2]->type == VAR_MATRIX)
-	{
-		return varNewMatrix(addition(*(struct matrix**) argv[1]->element, *(struct matrix**) argv[2]->element));
-	}
+  if (argv[1]->type == VAR_NUMBER && argv[2]->type == VAR_NUMBER)
+  {
+    return varNewNumber((*(float*) argv[1]->element) + (*(float*) argv[2]->element));
+  }
+  else if (argv[1]->type == VAR_MATRIX && argv[2]->type == VAR_MATRIX)
+  {
+    return varNewMatrix(addition(*(struct matrix**) argv[1]->element, *(struct matrix**) argv[2]->element));
+  }
 
-	return varNew(VAR_NULL);
+  return varNew(VAR_NULL);
 }
 
 variable_t* f_minus(int argc, variable_t** argv)
 {
-	if (argc != 3)
-	{
-		bleh("- a b");
-		return varNew(VAR_NULL);
-	}
+  if (argc != 3)
+  {
+    bleh("- a b");
+    return varNew(VAR_NULL);
+  }
 
-	if (argv[1]->type == VAR_NUMBER && argv[2]->type == VAR_NUMBER)
-	{
-		return varNewNumber((*(float*) argv[1]->element) - (*(float*) argv[2]->element));
-	}
-	else if (argv[1]->type == VAR_MATRIX && argv[2]->type == VAR_MATRIX)
-	{
-		return varNewSymbol(strdup("not implemented"));
-		//return varNewMatrix(addition(*(struct matrix**) argv[1]->element, *(struct matrix**) argv[2]->element));
-	}
+  if (argv[1]->type == VAR_NUMBER && argv[2]->type == VAR_NUMBER)
+  {
+    return varNewNumber((*(float*) argv[1]->element) - (*(float*) argv[2]->element));
+  }
+  else if (argv[1]->type == VAR_MATRIX && argv[2]->type == VAR_MATRIX)
+  {
+    return varNewSymbol(strdup("not implemented"));
+    //return varNewMatrix(addition(*(struct matrix**) argv[1]->element, *(struct matrix**) argv[2]->element));
+  }
 
-	return varNew(VAR_NULL);
+  return varNew(VAR_NULL);
 }
 
 variable_t* f_mult(int argc, variable_t** argv)
@@ -1178,245 +1178,261 @@ variable_t* f_matrix_random(int argc, variable_t** argv)
  */
 variable_t* f_speedtest(int argc, variable_t** argv)
 {
-	variable_t* arg;
-	variable_array_t* argArray;
-	int min, max, step;
-	int i;
-	struct timeval totalStop, totalStart;
-	struct timeval stop, start;
-	FILE* csv;
+  variable_t* arg;
+  variable_array_t* argArray;
+  int min, max, step;
+  int i;
+  struct timeval totalStop, totalStart;
+  struct timeval stop, start;
+  FILE* csv;
+  long int startTime = -1;
 
-	if (argc != 5)
-	{
-		bleh("speedtest command minSize maxSize step");
+  if (argc != 5)
+  {
+    bleh("speedtest command minSize maxSize step");
 
-		return varNew(VAR_NULL);
-	}
+    return varNew(VAR_NULL);
+  }
 
-	if (argv[1]->type != VAR_FUNCTION)
-	{
-		bleh("argv[1] is no function");
+  if (argv[1]->type != VAR_FUNCTION)
+  {
+    bleh("argv[1] is no function");
 
-		return varNew(VAR_NULL);
-	}
+    return varNew(VAR_NULL);
+  }
 
-	min = (int) varGetNumber(argv[2]);
-	max = (int) varGetNumber(argv[3]);
-	step = (int) varGetNumber(argv[4]);
+  min = (int) varGetNumber(argv[2]);
+  max = (int) varGetNumber(argv[3]);
+  step = (int) varGetNumber(argv[4]);
 
-	printf("  %i -> %i\n", min, max);
+  printf("  %i -> %i\n", min, max);
 
-	csv = fopen("/tmp/speedtest.csv", "w");
+  csv = fopen("/tmp/speedtest.csv", "w");
 
-	arg = varNew(VAR_ARRAY);
-	argArray = (variable_array_t*) arg->element;
+  arg = varNew(VAR_ARRAY);
+  argArray = (variable_array_t*) arg->element;
 
-	argArray->size = 2;
-	argArray->element = malloc(sizeof(variable_t*) * 2);
-	argArray->element[0] = varCopy(argv[1]);
+  argArray->size = 2;
+  argArray->element = malloc(sizeof(variable_t*) * 2);
+  argArray->element[0] = varCopy(argv[1]);
 
-	gettimeofday(&totalStart, NULL);
+  gettimeofday(&totalStart, NULL);
 
-	for (i = min; i <= max; i += step)
-	{
-		variable_t* pair;
-		variable_array_t* array;
+  for (i = max; i >= min; i -= step)
+  {
+  //  char buffer[256];
+    variable_t* pair;
+    variable_array_t* array;
 
-		pair = varNew(VAR_ARRAY);
-		array = (variable_array_t*) pair->element;
-		array->size = 2;
-		array->element = malloc(sizeof(variable_t*) * 2);
+    pair = varNew(VAR_ARRAY);
+    array = (variable_array_t*) pair->element;
+    array->size = 2;
+    array->element = malloc(sizeof(variable_t*) * 2);
 
-		array->element[0] = varNewMatrix(aleatoire(i, i, 0, 1));
-		array->element[1] = varNewMatrix(aleatoire(i, i, 0, 1));
+    array->element[0] = varNewMatrix(aleatoire(i, i, 0, 1));
+    array->element[1] = varNewMatrix(aleatoire(i, i, 0, 1));
 
-		argArray->element[1] = pair;
+    argArray->element[1] = pair;
 
-		//varPrint(arg, 0);
+    gettimeofday(&start, NULL);
 
-		gettimeofday(&start, NULL);
+    eval(2, argArray->element, NULL);
 
-		eval(2, argArray->element, NULL);
+    gettimeofday(&stop, NULL);
 
-		gettimeofday(&stop, NULL);
+    long int time = stop.tv_usec - start.tv_usec;
+    if (startTime == -1)
+      startTime = time;
 
-		/* FIXME: redirect that in a file. */
-		printf("%li\n", stop.tv_usec - start.tv_usec);
-		fprintf(csv, "%i, %li\n", i, stop.tv_usec - start.tv_usec);
+    int color = (i / step) % 2 == 0 ? 4 : 6;
 
-		varFree(pair);
-	}
+    printf("\033[00;4%im", color);
+    int j = 0;
+    for (j; j < (69 * time) / startTime; j++)
+      printf(" ");
+    printf("\033[00;3%im %li\n", color, time);
 
-	gettimeofday(&totalStop, NULL);
+    if (time > 0)
+      fprintf(csv, "%i, %li\n", i, time);
 
-	fclose(csv);
+    varFree(pair);
+  }
 
-	system("echo '"
-		"set term x11\n"
-		"set datafile separator \",\"\n"
-		"plot \"/tmp/speedtest.csv\" using 1:2 with lines\n"
-	"' | gnuplot -persistant");
+  gettimeofday(&totalStop, NULL);
 
-	varFree(arg);
+  fclose(csv);
 
-	return varNewNumber((float) (totalStop.tv_usec - totalStart.tv_usec));
+  system("echo '"
+    "set datafile separator \",\"\n"
+    "plot \"/tmp/speedtest.csv\" using 1:2 with lines\n"
+  "' | gnuplot -persistant");
+
+  varFree(argArray->element[0]);
+  free(argArray->element);
+  free(arg);
+
+  return varNewNumber((float) (totalStop.tv_usec - totalStart.tv_usec));
 }
 
 variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
 {
-	int i;
-	variable_t* rValue = NULL;
+  int i;
+  variable_t* rValue = NULL;
 
-	if (argc == 1)
-	{
-		if (argv[0]->type == VAR_SYMBOL)
-		{
-			variable_symbol_t* symbol = (variable_symbol_t*) argv[0]->element;
-			variable_t* match = getEvt(*evnt, symbol->string);
+  if (argc == 1)
+  {
+    if (argv[0]->type == VAR_SYMBOL)
+    {
+      variable_symbol_t* symbol = (variable_symbol_t*) argv[0]->element;
+      variable_t* match = getEvt(*evnt, symbol->string);
 
-			if (match)
-				return varCopy(match);
-			else
-			{
-				return varCopy(argv[0]);
-			}
-		}
-		else if (argv[0]->type == VAR_ARRAY)
-		{
-			variable_array_t* orig;
-			variable_array_t* array;
+      if (match)
+        return varCopy(match);
+      else
+      {
+        return varCopy(argv[0]);
+      }
+    }
+    else if (argv[0]->type == VAR_ARRAY)
+    {
+      variable_array_t* orig;
+      variable_array_t* array;
 
-			rValue = varNew(VAR_ARRAY);
-			orig = (variable_array_t*) argv[0]->element;
-			array = (variable_array_t*) rValue->element;
+      rValue = varNew(VAR_ARRAY);
+      orig = (variable_array_t*) argv[0]->element;
+      array = (variable_array_t*) rValue->element;
 
-			array->size = orig->size;
-			array->element = malloc(sizeof(*array->element) * array->size);
+      array->size = orig->size;
+      array->element = malloc(sizeof(*array->element) * array->size);
 
-			for (i = 0; i < orig->size; i++)
-			{
-				array->element[i] = eval(1, &orig->element[i], evnt);
-			}
+      for (i = 0; i < orig->size; i++)
+      {
+        array->element[i] = eval(1, &orig->element[i], evnt);
+      }
 
-			return rValue;
-		}
-		else if (argv[0]->type == VAR_CALL)
-		{
-			variable_array_t* orig;
+      return rValue;
+    }
+    else if (argv[0]->type == VAR_CALL)
+    {
+      variable_array_t* orig;
 
-			orig = (variable_array_t*) argv[0]->element;
+      orig = (variable_array_t*) argv[0]->element;
 
-			rValue = eval(orig->size, orig->element, evnt);
+      rValue = eval(orig->size, orig->element, evnt);
 
-			return rValue;
-		}
-		else
-			return varCopy(argv[0]);
-	}
-	else if (argc >= 3)
-	{
-		if (argv[0]->type == VAR_SYMBOL && argv[1]->type == VAR_SYMBOL)
-		{
-			if (!strcmp(*((char**) argv[1]->element), ":"))
-			{
-				variable_t* rValue;
-				char* varName;
+      return rValue;
+    }
+    else
+      return varCopy(argv[0]);
+  }
+  else if (argc >= 3)
+  {
+    if (argv[0]->type == VAR_SYMBOL && argv[1]->type == VAR_SYMBOL)
+    {
+      if (!strcmp(*((char**) argv[1]->element), ":"))
+      {
+        variable_t* rValue;
+        char* varName;
 
-				varName = *(char**)(argv[0]->element);
-				rValue = eval(argc - 2, argv + 2, evnt);
+        varName = *(char**)(argv[0]->element);
+        rValue = eval(argc - 2, argv + 2, evnt);
 
-				setEvt(evnt, rValue, varName);
-				printf("%p\n", *evnt);
+        setEvt(evnt, rValue, varName);
+        printf("%p\n", *evnt);
 
-				printf("New variable: %s\n", varName);
+        printf("New variable: %s\n", varName);
 
-				return varCopy(rValue);
-			}
-		}
-	}
+        return varCopy(rValue);
+      }
+    }
+  }
 
-	variable_t** realValues;
+  variable_t** realValues;
 
-	realValues = malloc(sizeof(variable_t*) * argc);
+  realValues = malloc(sizeof(variable_t*) * argc);
 
-	for (i = 0; i < argc; i++)
-	{
-		if (argv[i]->type == VAR_CALL)
-		{
-			variable_array_t* array = (variable_array_t*) argv[i]->element;
+  for (i = 0; i < argc; i++)
+  {
+    if (argv[i]->type == VAR_CALL)
+    {
+      variable_array_t* array = (variable_array_t*) argv[i]->element;
 
-			realValues[i] = eval(array->size, array->element, evnt);
-		}
-		else
-		{
-			realValues[i] = eval(1, argv + i, evnt);
-		}
-	}
+      realValues[i] = eval(array->size, array->element, evnt);
+    }
+    else
+    {
+      realValues[i] = eval(1, argv + i, evnt);
+    }
+  }
 
-	if (argc >= 2)
-	{
-		if (realValues[1]->type == VAR_FUNCTION && realValues[0]->type != VAR_FUNCTION)
-		{
-			variable_t* t = realValues[0];
-			realValues[0] = realValues[1];
-			realValues[1] = t;
-		}
-	}
+  if (argc >= 2)
+  {
+    if (realValues[1]->type == VAR_FUNCTION && realValues[0]->type != VAR_FUNCTION)
+    {
+      variable_t* t = realValues[0];
+      realValues[0] = realValues[1];
+      realValues[1] = t;
+    }
+  }
 
-	if (realValues[0]->type == VAR_FUNCTION)
-	{
-		variable_function_t* f = (variable_function_t*) realValues[0]->element;
-		rValue = f->function(argc, realValues);
-	}
-	else if (argv[0]->type == VAR_SYMBOL)
-	{
-		char* funcName = *(char**) argv[0]->element;
+  if (realValues[0]->type == VAR_FUNCTION)
+  {
+    variable_function_t* f = (variable_function_t*) realValues[0]->element;
+    rValue = f->function(argc, realValues);
+  }
+  else if (argv[0]->type == VAR_SYMBOL)
+  {
+    char* funcName = *(char**) argv[0]->element;
 
-		if (!strcmp(funcName, "matrix"))
-			rValue = f_matrix(argc, realValues);
-		else if (!strcmp(funcName, "rmatrix") || !strcmp(funcName, "randomMatrix"))
-			rValue = f_matrix_random(argc, realValues);
-		else if (!strcmp(funcName,"addition"))
-			rValue = f_add(argc, realValues);
-		else if (!strcmp(funcName,"mult"))
-			rValue = f_mult(argc, realValues);
-		else if (!strcmp(funcName, "get"))
-			rValue = f_get(argc, realValues);
-		else if (!strcmp(funcName, "echo"))
-			rValue = f_echo(argc, realValues);
-		else if (!strcmp(funcName,"mult_scal"))
-			rValue = f_multScal(argc, realValues);
-		else if (!strcmp(funcName,"expo"))
-			rValue = f_pow(argc, realValues);
-		else if (!strcmp(funcName,"transpose"))
-			rValue = f_trans(argc, realValues);
-		else if (!strcmp(funcName,"determinant"))
-			rValue = f_det(argc, realValues);
-		else if (!strcmp(funcName,"invert"))
-			rValue = f_invert(argc, realValues);
-		else if (!strcmp(funcName,"solve"))
-			rValue = f_solve(argc, realValues);
-		else if (!strcmp(funcName, "get"))
-			rValue = f_get(argc, realValues);
-		else
-		{
-			bleh("Trying to call unknown function.");
-			fprintf(stderr, " -> function name: %s\n", funcName);
+    if (!strcmp(funcName, "matrix"))
+      rValue = f_matrix(argc, realValues);
+    else if (!strcmp(funcName, "rmatrix") || !strcmp(funcName, "randomMatrix"))
+      rValue = f_matrix_random(argc, realValues);
+    else if (!strcmp(funcName,"addition"))
+      rValue = f_add(argc, realValues);
+    else if (!strcmp(funcName,"mult"))
+      rValue = f_mult(argc, realValues);
+    else if (!strcmp(funcName, "get"))
+      rValue = f_get(argc, realValues);
+    else if (!strcmp(funcName, "echo"))
+      rValue = f_echo(argc, realValues);
+    else if (!strcmp(funcName,"mult_scal"))
+      rValue = f_multScal(argc, realValues);
+    else if (!strcmp(funcName,"expo"))
+      rValue = f_pow(argc, realValues);
+    else if (!strcmp(funcName,"transpose"))
+      rValue = f_trans(argc, realValues);
+    else if (!strcmp(funcName,"determinant"))
+      rValue = f_det(argc, realValues);
+    else if (!strcmp(funcName,"invert"))
+      rValue = f_invert(argc, realValues);
+    else if (!strcmp(funcName,"solve"))
+      rValue = f_solve(argc, realValues);
+    else if (!strcmp(funcName,"valP"))
+      rValue = f_valP(argc, realValues);
+    else if (!strcmp(funcName,"decomposition"))
+      rValue = f_LU(argc, realValues);
+    else if (!strcmp(funcName, "get"))
+      rValue = f_get(argc, realValues);
+    else
+    {
+      bleh("Trying to call unknown function.");
+      fprintf(stderr, " -> function name: %s\n", funcName);
 
-			rValue = varNew(VAR_NULL);
-		}
-	}
+      rValue = varNew(VAR_NULL);
+    }
+  }
 
-	for (i = 0; i < argc; i++)
-	{
-		varFree(realValues[i]);
-	}
+  for (i = 0; i < argc; i++)
+  {
+    varFree(realValues[i]);
+  }
 
-	free(realValues);
+  free(realValues);
 
-	if (rValue)
-		return rValue;
-	else
-		return varNew(VAR_NULL);
+  if (rValue)
+    return rValue;
+  else
+    return varNew(VAR_NULL);
 }
 

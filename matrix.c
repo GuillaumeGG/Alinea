@@ -6,10 +6,10 @@
 #include "matrix.h"
 
 Matrix newMatrix(int nb_rows, int nb_columns){
-	Matrix M = malloc(sizeof(struct matrix));
+	Matrix M = malloc(sizeof(Matrix));
 	M->nrows = nb_rows;
 	M->ncols = nb_columns;
-	M->mat = malloc((nb_rows+1)*nb_columns*sizeof(E));
+	M->mat = malloc((nb_rows)*(nb_columns)*sizeof(E));
 	
 	
 	int i,j;
@@ -44,7 +44,7 @@ void setElt(Matrix m, int row, int column, E val){
 }
 
 Matrix newIdentite(int nb_rows){
-	Matrix M = malloc(sizeof(struct matrix));
+	Matrix M = malloc(sizeof(Matrix));
 	M->nrows = nb_rows;
 	M->ncols = nb_rows;
 	M->mat = malloc(nb_rows*nb_rows*sizeof(E));
@@ -66,7 +66,7 @@ double frand_a_b(double a, double b){
 }
 
 Matrix aleatoire(int nb_rows, int nb_columns, int min, int max){
-	Matrix M = malloc(sizeof(struct matrix));
+	Matrix M = malloc(sizeof(Matrix));
 	M->nrows = nb_rows;
 	M->ncols = nb_columns;
 	M->mat = malloc(nb_rows*nb_columns*sizeof(E));

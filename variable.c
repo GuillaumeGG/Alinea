@@ -20,7 +20,7 @@ int bleh(char* str) {
              VAR_CALL,
              VAR_NULL, */
 
-void varPrint(variable_t* var, int indent);
+//void varPrint(variable_t* var, int indent);
 
 static int size_elem(int type)
 {
@@ -892,6 +892,42 @@ variable_t* f_invert(int argc, variable_t** argv)
   return output;
 }
 
+variable_t* f_rank(int argc, variable_t** argv)
+{
+  variable_array_t* array_operation;
+  variable_t *mat;
+  variable_t *output;
+  struct matrix *mat_value;
+  float result_rank;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_rank\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  
+  if(mat->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_rank\n");
+    printf("type mat : %d \n",mat->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_rank = rang(mat_value);
+  
+  output = varNew(VAR_NUMBER);
+  
+  memcpy(output->element, &result_rank, sizeof(result_rank));
+
+
+  return output;
+}
 
 variable_t* f_solve(int argc, variable_t** argv)
 {
@@ -929,6 +965,100 @@ variable_t* f_solve(int argc, variable_t** argv)
   return output;
 }
 
+variable_t* f_valP(int argc, variable_t** argv)
+{
+  variable_array_t *array_operation, *array_result_table;
+  variable_t *mat;
+  variable_t *output_matrix, *output_val, *array_result_var;
+  struct matrix *mat_value, **result_valP;
+  float val_valP;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_valP\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  
+  if(mat->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_valP\n");
+    printf("type mat : %d \n",mat->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_valP = malloc(3*sizeof(struct matrix*));
+  result_valP = valeurPropre(mat_value, result_valP);
+  
+  output_matrix = varNewMatrix(result_valP[0]);
+  
+  val_valP = getElt(result_valP[1], 0, 0);
+  output_val = varNewNumber(val_valP);
+
+  array_result_var = varNew(VAR_ARRAY);
+  
+  array_result_table = (variable_array_t*) array_result_var->element;
+  
+  array_result_table->size = 2;
+  array_result_table->element = malloc(sizeof(variable_t*) * 2);
+  
+  array_result_table->element[0] = output_matrix;
+  array_result_table->element[1] = output_val;
+  
+  deleteMatrix(result_valP[1]);
+  free(result_valP);
+  
+  return array_result_var;
+}
+
+variable_t* f_LU(int argc, variable_t** argv)
+{
+  variable_array_t *array_operation, *array_result_table;
+  variable_t *mat;
+  variable_t *output_matrix1, *output_matrix2, *array_result_var;
+  struct matrix *mat_value, **result_LU;
+  
+  if (argc != 2)
+  {
+    bleh("Incorrect arg number in f_LU\n");
+    return varNew(VAR_NULL);
+  }
+  
+  array_operation = (variable_array_t*)argv[1]->element;
+  
+  mat = array_operation->element[0];
+  
+  if(mat->type != VAR_MATRIX)
+  {
+    bleh("Incorrect variable type in f_LU\n");
+    printf("type mat : %d \n",mat->type);
+    return varNew(VAR_NULL);
+  }
+  
+  mat_value = *(struct matrix**) mat->element;
+  
+  result_LU = malloc(3*sizeof(struct matrix*));
+  result_LU = decompositionLU(mat_value, result_LU);
+  
+  output_matrix1 = varNewMatrix(result_LU[0]);
+  
+  output_matrix2 = varNewMatrix(result_LU[1]);
+
+  array_result_var = varNew(VAR_ARRAY);
+  array_result_table = (variable_array_t*) array_result_var->element;
+  array_result_table->size = 2;
+  array_result_table->element = malloc(sizeof(variable_t*) * 2);
+  array_result_table->element[0] = output_matrix1;
+  array_result_table->element[1] = output_matrix2;
+  
+  free(result_LU);
+  return array_result_var;
+}
 
 variable_t* f_echo(int argc, variable_t** argv)
 {
@@ -1251,10 +1381,16 @@ variable_t* eval(int argc, variable_t** argv, environment_t** evnt)
       rValue = f_trans(argc, realValues);
     else if (!strcmp(funcName,"determinant"))
       rValue = f_det(argc, realValues);
+    else if (!strcmp(funcName,"rank"))
+      rValue = f_rank(argc, realValues);
     else if (!strcmp(funcName,"invert"))
       rValue = f_invert(argc, realValues);
     else if (!strcmp(funcName,"solve"))
       rValue = f_solve(argc, realValues);
+    else if (!strcmp(funcName,"valP"))
+      rValue = f_valP(argc, realValues);
+    else if (!strcmp(funcName,"decomposition"))
+      rValue = f_LU(argc, realValues);
     else if (!strcmp(funcName, "get"))
       rValue = f_get(argc, realValues);
     else

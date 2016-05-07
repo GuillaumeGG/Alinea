@@ -36,6 +36,23 @@ Matrix multScal(E v, const Matrix m){
 	return M;
 }
 
+Matrix multVector(Matrix M, Matrix v){
+	if(v->ncols != 1){
+		fprintf(stderr, "argument 2: matrice de taille 1xn ou nx1.\n");
+		exit(0);
+	}
+	
+	Matrix u = newMatrix(v->nrows, 1);
+	int i, j;
+	for(i=0; i<v->nrows; i++){
+		setElt(u,i,0,0);
+		for(j=0;j<v->nrows;j++){
+			setElt(u,i,0,
+					(getElt(u,i,0)+(getElt(M,i,j)*getElt(v,i,0))));
+		}
+	}
+	return u;
+}
 
 
 E normeVector(const Matrix V){
@@ -45,7 +62,7 @@ E normeVector(const Matrix V){
 	}
 	
 	int i;
-	E s;
+	E s=0;
 	if(V->nrows == 1){
 		for(i=0; i<V->ncols; i++){
 			s += getElt(V, 0, i)*getElt(V, 0, i);
@@ -61,14 +78,15 @@ E normeVector(const Matrix V){
 
 Matrix puissance(Matrix A, float p){
 	
-	int pow = (int)p;
-	
-	if(p==0){
+	//On prend en argument un float dufait de la façon dont l'interpréteur
+	//est codé, et on cast ce float en int
+	int pu = (int)p;
+	if(pu==0){
 		return newIdentite(A->nrows);
 	}
 	Matrix cpy = copyMatrix(A);
 	int i = 1;
-	while(i<p){
+	while(i<pu){
 		cpy = multiplication(cpy,A);
 		i++;
 	}
@@ -91,6 +109,7 @@ void swapLine(Matrix m, int l1, int l2){
 		setElt(m, l1, i, getElt(m, l2, i));
 		setElt(m, l2, i, temp[i]);
 	}
+	free(temp);	
 }
 
 
@@ -105,7 +124,8 @@ void combineLines(Matrix m, E c1, int l1, E c2, int l2){
 	for(i=0; i<m->ncols; i++){
 		temp[i] = c1 * getElt(m, l1, i) + c2 * getElt(m, l2, i);
 		setElt(m, l2, i, temp[i]);
-	}	
+	}
+	free(temp);	
 }
 
 Matrix remontee(Matrix A, Matrix B){
@@ -187,6 +207,8 @@ Matrix solveGauss(Matrix A, Matrix B){
 	Matrix D = copyMatrix(B);
 	solveTriangulaire(C,D);
 	Matrix X = remontee(C,D);
+	deleteMatrix(C);
+	deleteMatrix(D);
 	return X;
 }
 
@@ -222,9 +244,19 @@ E determinant_opt(Matrix A){
 	}
 	
 	det = det * c;
+	deleteMatrix(A2);
+	deleteMatrix(B);
 	return det;
 }
 
+void addMultiple_Unique(Matrix A, int i, int j, E c){
+	int k;
+	for(k=0; k < A->nrows ; k++){
+		
+		setElt(A,i,k,
+				(getElt(A,i,k) + c*getElt(A,j,k)));
+	}
+}
 
 void addMultiple_Inv(Matrix A, Matrix B, int i, int j, E c){
 	int k;
@@ -254,13 +286,10 @@ Matrix invert(Matrix A_to_invert){
 		fprintf(stderr, "Une matrice non-carrée n'est pas inversible!\n");
 		exit(1);
 	}
-	printf("Matrice d'entrée : \n");
+	
 	//On évite de modifier la matrice d'entrée par effet de bord
 	Matrix A = copyMatrix(A_to_invert);
-	displayMatrix(A);
 	Matrix InvA = newIdentite(A->nrows);
-	printf("Matrice identité : \n");
-	displayMatrix(InvA);
 	
 	int i, j;
 	E det = 1;
@@ -277,15 +306,9 @@ Matrix invert(Matrix A_to_invert){
 		
 		for(j=i+1; j<A->nrows; j++){
 			
-		printf("%f\n",(-getElt(A,j,i)/getElt(A,i,i))); 
 		addMultiple_Inv(A,InvA,j,i, -1*(getElt(A,j,i)/getElt(A,i,i)));
 		}
 	}
-	
-	printf("Matrice d'entrée après triangularisation: \n");
-	displayMatrix(A);
-	printf("\n");
-	displayMatrix(InvA);	
 	
 	// Diagonalisation de A
     for(j=A->ncols-1; j>=0; j--){
@@ -302,93 +325,63 @@ Matrix invert(Matrix A_to_invert){
             setElt(InvA, i, j, (getElt(InvA, i, j)/getElt(A, i, i)));
         }
     }
-	
-	printf("Matrice d'entrée après inversion: \n");
-	displayMatrix(A);
-	printf("Matrice inverse : \n");
-	displayMatrix(InvA);
 
+	deleteMatrix(A);
 	return InvA;
 }
 
-void decompositionLU(Matrix A_to_LU){
+
+
+int rang(Matrix M){
+
+	int i, j, rang, verif;
+	Matrix A = copyMatrix(M);  
+
+	for(i=0; i<A->nrows-1; i++){
+
+		j = choixPivot(A,i);
+		if(j != i){
+			echangeLignes_Inv(A,i,j);
+		}   
+
+		for(j=i+1; j<A->nrows; j++){ 
+				addMultiple_Unique(A,j,i, -1*(getElt(A,j,i)/getElt(A,i,i)));
+		}
+	}
+	for(i=0; i<A->nrows; i++){    
+
+		for(j=0; j<A->ncols; j++){
+			if(getElt(A,i,j) == 0){
+			verif++;
+			}
+		}
+
+		if(verif != A->ncols){
+			rang++;
+		}
+		verif=0;
+	}
+	deleteMatrix(A);
+	return rang;
+
+}
+
+
+
+Matrix* decompositionLU(Matrix A_to_LU, Matrix* res){
 	
 	//On évite de modifier la matrice d'entrée par effet de bord
 	Matrix A = copyMatrix(A_to_LU);
-	/*
-	//Tableau de stockage des matrices élémentaires de A
-	Matrix* tabE = malloc(2*A->nrows*sizeof(Matrix));
-	int tabE_length = 0;
-	
-	Matrix Id = newIdentite(A->nrows);
-	
-	int i, j;
-	//Triangularisation de la matrice A; On applique les mêmes opérations sur Id
-	for(i=0; i<A->nrows; i++){
 
-		
-		j = choixPivot(A,i);
-		echangeLignes_Inv(A,i,j);
-		echangeLignes_Inv(Id,i,j);		
-		//On ajoute la matrice élémentaire contenu dans Id dans tabE,
-		//Puis on réinitialise Id.	
-		
-		printf("Echange de ligne %d et %d\n",i,j);
-		printf("Matrice A : \n");
-		displayMatrix(A);
-		printf("\n");
-		printf("Matrice Id : \n");
-		displayMatrix(Id);
-		printf("\n");
-		tabE[tabE_length] = Id;
-		tabE_length++;
-		Matrix Id = newIdentite(A->nrows);
-		
-		
-		
-		
-		for(j=i+1; j<A->nrows; j++){
-			
-			addMultiple_Inv(A,Id,j,i, (-getElt(A,j,i)/getElt(A,i,i)));
-			
-			printf("add %d et %d * %f\n",i,j,(-getElt(A,j,i)/getElt(A,i,i)));
-			printf("Matrice A : \n");
-			displayMatrix(A);
-			printf("\n");
-			printf("Matrice Id : \n");
-			displayMatrix(Id);
-			printf("\n");
-			
-			tabE[tabE_length] = Id;
-			tabE_length++;
-			Id = newIdentite(A->nrows);
-		}
-	}
-	printf("\n");
-	displayMatrix(A);
-	printf("\n");
-	//CALCUL DE U
-	Matrix U = tabE[0];
-	for(i=1; i<tabE_length; i++){
-		U = multiplication(U,tabE[i]);
-		displayMatrix(tabE[i]);
-		printf("\n");
-	}
-	displayMatrix(U);
-	printf("\n");
-	U = multiplication(U,A);
-	displayMatrix(A);
-	printf("\n");
-	displayMatrix(U);
-	*/
-	
 	Matrix U = newMatrix(A->nrows,A->nrows);
 	Matrix L = newIdentite(A->nrows);
+	//Matrix U = newIdentite(A->nrows);
 	
 	int i, j, k;
+	E s=0;
 	
 	setElt(U, 0, 0, getElt(A, 0, 0));
-	
+	//Première ligne de U et LU
 	for(j=1; j<A->nrows; j++){
 		
 		setElt(U, 0, j,
@@ -399,33 +392,33 @@ void decompositionLU(Matrix A_to_LU){
 	
 	for(i = 1; i<A->nrows-1; i++){
 		
-		setElt(U, i, i, getElt(A, i, i));
-		for(k = 0; k<i-1; k++){
-			setElt(U, i, i,
-					(getElt(U, i, i) - (getElt(L, i, k)*getElt(U, k, i))));
+		//Diagonale de la ligne i
+		s=0;
+		for(k = 0; k<i; k++){
+			 s += getElt(L, i, k)*getElt(U, k, i);
 		}
-		
+		setElt(U, i, i, getElt(A, i, i)-s);
+		s=0;
+		//Elements post-diagonale de la ligne i
 		for(j=i+1; j<A->nrows; j++){
 			
-			setElt(U, i, j, getElt(A, i, j));
-			
-			for(k = 0; k<i-1; k++){
-				setElt(U, i, j,
-					(getElt(U, i, j) - (getElt(L, i, k)*getElt(U, k, j))));
+						
+			for(k = 0; k<i; k++){
+					s += getElt(L, i, k)*getElt(U, k, j);
 			}
+			setElt(U, i, j, getElt(A, i, j)-s);
 			
-			setElt(L, j, i, getElt(A, j, i));
-			
-			for(k=0; k<i-1; k++){
+			s=0;
+			setElt(L, j, i, getElt(A, j, i));			
+			for(k=0; k<i; k++){
 				setElt(L, j, i,
 					(getElt(L, j, i) - (getElt(L, j, k)*getElt(U, k, i))));
-			}
-			
+			}			
 			setElt(L, j, i, (getElt(L, j, i)*(1/getElt(U,i,i))));
 			
 		}
 	}
-	
+	//Element (n,n) de U
 	setElt(U,A->nrows-1,A->nrows-1, getElt(A,A->nrows-1,A->nrows-1));
 	
 	for(k=0; k<A->nrows-1; k++){
@@ -434,14 +427,63 @@ void decompositionLU(Matrix A_to_LU){
 					- (getElt(L, A->nrows-1, k)*getElt(U, k, A->nrows-1)));
 	}
 	
-	printf("Matrice L de A :\n");
-	displayMatrix(L);
-	printf("Matrice U de A :\n");
-	displayMatrix(U);
-	Matrix LU = multiplication(L,U);
-	printf("Matrice LU de A: \n");
-	displayMatrix(LU);
-	
+	//On place L et U dans le tableau de pointeurs sur matrices passé
+	//en entrée, et on renvoie ce dernier.
+	res[0] = L;
+	res[1] = U;
+	deleteMatrix(A);
+	return res;
 		
-			
+}
+
+Matrix* valeurPropre(Matrix A, Matrix* res){
+	
+	int i=0;
+	
+	//On créé un vecteur composé uniquement de 1
+	Matrix u = newMatrix(A->nrows,1);			
+	for(i=0; i<u->nrows; i++)
+		setElt(u,i,0,1);
+
+	Matrix u2 = newMatrix(A->nrows,1);
+	for(i=0; i<u->nrows; i++)
+		setElt(u2,i,0,0);
+		
+	//v est la composante de u de plus grande valeure absolue.
+	//On représente v sous la forme d'une matrice 1x1 pour pouvoir
+	//renvoyer un tableau de matrices contenant u et v.
+	Matrix v = newMatrix(1,1);
+	setElt(v,0,0,1);
+	
+	Matrix v2 = newMatrix(1,1);
+	setElt(v2,0,0,0);
+	
+	E abs;	
+	E approx = 0.0001;
+	
+	//Tant que la précision n'est pas suffisante:
+	while( (getElt(v,0,0) - getElt(v2,0,0) > approx) || (normeVector(u)-normeVector(u2) > approx) ){
+
+		v2 = copyMatrix(v); u2 = copyMatrix(u);
+		abs = 0;
+
+		u = multVector(A,u);
+
+		//v prend la valeur de la plus grande composante de u
+		for(i=0; i<u->nrows; i++){
+			if(fabs(getElt(u,i,0))>abs)
+				abs = fabs(getElt(u,i,0));
+		}					
+		setElt(v,0,0, abs);
+		
+		u = multScal(1/getElt(v,0,0), u);
+	}
+	
+	//On place u et v dans le tableau de pointeurs sur matrices passé
+	//en entrée, et on renvoie ce dernier.
+	res[0] = u;
+	res[1] = v;
+	deleteMatrix(u2);
+	deleteMatrix(v2);
+	return res;
 }

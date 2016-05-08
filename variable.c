@@ -1178,100 +1178,100 @@ variable_t* f_matrix_random(int argc, variable_t** argv)
  */
 variable_t* f_speedtest(int argc, variable_t** argv)
 {
-  variable_t* arg;
-  variable_array_t* argArray;
-  int min, max, step;
-  int i;
-  struct timeval totalStop, totalStart;
-  struct timeval stop, start;
-  FILE* csv;
-  long int startTime = -1;
+	variable_t* arg;
+	variable_array_t* argArray;
+	int min, max, step;
+	int i;
+	struct timeval totalStop, totalStart;
+	struct timeval stop, start;
+	FILE* csv;
+	long int startTime = -1;
 
-  if (argc != 5)
-  {
-    bleh("speedtest command minSize maxSize step");
+	if (argc != 5)
+	{
+		bleh("speedtest command minSize maxSize step");
 
-    return varNew(VAR_NULL);
-  }
+		return varNew(VAR_NULL);
+	}
 
-  if (argv[1]->type != VAR_FUNCTION)
-  {
-    bleh("argv[1] is no function");
+	if (argv[1]->type != VAR_FUNCTION)
+	{
+		bleh("argv[1] is no function");
 
-    return varNew(VAR_NULL);
-  }
+		return varNew(VAR_NULL);
+	}
 
-  min = (int) varGetNumber(argv[2]);
-  max = (int) varGetNumber(argv[3]);
-  step = (int) varGetNumber(argv[4]);
+	min = (int) varGetNumber(argv[2]);
+	max = (int) varGetNumber(argv[3]);
+	step = (int) varGetNumber(argv[4]);
 
-  printf("  %i -> %i\n", min, max);
+	printf("  %i -> %i\n", min, max);
 
-  csv = fopen("/tmp/speedtest.csv", "w");
+	csv = fopen("/tmp/speedtest.csv", "w");
 
-  arg = varNew(VAR_ARRAY);
-  argArray = (variable_array_t*) arg->element;
+	arg = varNew(VAR_ARRAY);
+	argArray = (variable_array_t*) arg->element;
 
-  argArray->size = 2;
-  argArray->element = malloc(sizeof(variable_t*) * 2);
-  argArray->element[0] = varCopy(argv[1]);
+	argArray->size = 2;
+	argArray->element = malloc(sizeof(variable_t*) * 2);
+	argArray->element[0] = varCopy(argv[1]);
 
-  gettimeofday(&totalStart, NULL);
+	gettimeofday(&totalStart, NULL);
 
-  for (i = max; i >= min; i -= step)
-  {
-  //  char buffer[256];
-    variable_t* pair;
-    variable_array_t* array;
+	for (i = max; i >= min; i -= step)
+	{
+		//  char buffer[256];
+		variable_t* pair;
+		variable_array_t* array;
 
-    pair = varNew(VAR_ARRAY);
-    array = (variable_array_t*) pair->element;
-    array->size = 2;
-    array->element = malloc(sizeof(variable_t*) * 2);
+		pair = varNew(VAR_ARRAY);
+		array = (variable_array_t*) pair->element;
+		array->size = 2;
+		array->element = malloc(sizeof(variable_t*) * 2);
 
-    array->element[0] = varNewMatrix(aleatoire(i, i, 0, 1));
-    array->element[1] = varNewMatrix(aleatoire(i, i, 0, 1));
+		array->element[0] = varNewMatrix(aleatoire(i, i, 0, 1));
+		array->element[1] = varNewMatrix(aleatoire(i, i, 0, 1));
 
-    argArray->element[1] = pair;
+		argArray->element[1] = pair;
 
-    gettimeofday(&start, NULL);
+		gettimeofday(&start, NULL);
 
-    eval(2, argArray->element, NULL);
+		eval(2, argArray->element, NULL);
 
-    gettimeofday(&stop, NULL);
+		gettimeofday(&stop, NULL);
 
-    long int time = stop.tv_usec - start.tv_usec;
-    if (startTime == -1)
-      startTime = time;
+		long int time = stop.tv_usec - start.tv_usec;
+		if (startTime == -1)
+			startTime = time;
 
-    int color = (i / step) % 2 == 0 ? 4 : 6;
+		int color = (i / step) % 2 == 0 ? 4 : 6;
 
-    printf("\033[00;4%im", color);
-    int j = 0;
-    for (j; j < (69 * time) / startTime; j++)
-      printf(" ");
-    printf("\033[00;3%im %li\n", color, time);
+		printf("\033[00;4%im", color);
+		int j = 0;
+		for (j; j < (69 * time) / startTime; j++)
+			printf(" ");
+		printf("\033[00;3%im %li\n", color, time);
 
-    if (time > 0)
-      fprintf(csv, "%i, %li\n", i, time);
+		if (time > 0)
+			fprintf(csv, "%i, %li\n", i, time);
 
-    varFree(pair);
-  }
+		varFree(pair);
+	}
 
-  gettimeofday(&totalStop, NULL);
+	gettimeofday(&totalStop, NULL);
 
-  fclose(csv);
+	fclose(csv);
 
-  system("echo '"
-    "set datafile separator \",\"\n"
-    "plot \"/tmp/speedtest.csv\" using 1:2 with lines\n"
-  "' | gnuplot -persistant");
+	system("echo '"
+			"set datafile separator \",\"\n"
+			"plot \"/tmp/speedtest.csv\" using 1:2 with lines\n"
+		"' | gnuplot -persistant");
 
-  varFree(argArray->element[0]);
-  free(argArray->element);
-  free(arg);
+	varFree(argArray->element[0]);
+	free(argArray->element);
+	free(arg);
 
-  return varNewNumber((float) (totalStop.tv_usec - totalStart.tv_usec));
+	return varNewNumber((float) (totalStop.tv_usec - totalStart.tv_usec));
 }
 
 variable_t* eval(int argc, variable_t** argv, environment_t** evnt)

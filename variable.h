@@ -13,14 +13,14 @@
 
 // Definition de types utilisés //
 typedef enum {
-	VAR_NUMBER,
-	VAR_ARRAY,
-	VAR_STRING,
-	VAR_MATRIX,
-	VAR_SYMBOL,
-	VAR_CALL,
-	VAR_FUNCTION,
-	VAR_NULL,
+  VAR_NUMBER,
+  VAR_ARRAY,
+  VAR_STRING,
+  VAR_MATRIX,
+  VAR_SYMBOL,
+  VAR_CALL,
+  VAR_FUNCTION,
+  VAR_NULL,
 } var_type;
 
 // Structure des variables //
@@ -35,15 +35,15 @@ typedef struct tabAndFunc_s {
 } variable_array_t;
 
 typedef struct {
-	float value;
+  float value;
 } variable_number_t;
 
 typedef struct {
-	char* string;
+  char* string;
 } variable_symbol_t;
 
 typedef struct {
-	variable_t* (*function)(int, variable_t**);
+  variable_t* (*function)(int, variable_t**);
 } variable_function_t;
 
 typedef struct environment_s {
@@ -81,8 +81,16 @@ variable_t* f_echo(int, variable_t**);
 variable_t* f_add(int, variable_t**);
 variable_t* f_plus(int, variable_t**);
 variable_t* f_minus(int, variable_t**);
+variable_t* f_valP(int, variable_t**);
+variable_t* f_invert(int, variable_t**);
+variable_t* f_mult(int, variable_t**);
+variable_t* f_multScal(int, variable_t**);
+variable_t* f_pow(int, variable_t**);
+variable_t* f_solve(int, variable_t**);
+variable_t* f_det(int, variable_t**);
 variable_t* f_rank(int, variable_t**);
 variable_t* f_LU(int, variable_t**);
 variable_t* f_speedtest(int, variable_t**);
+
 
 #endif
